@@ -20,10 +20,10 @@ App para el criador 46 (SRA) – Caballo de Destreza Gaucha – eventos de jinet
 
 ## Cómo subirla a GitHub (igual que Stock Ganadero)
 
-1. En GitHub: **New repository** → nombre `equinos` → **Public** → *Create repository*.
+1. En GitHub: **New repository** → nombre `Equinos` → **Public** → *Create repository*.
 2. **Add file → Upload files**: arrastrar los 7 archivos de esta carpeta → **Commit changes**.
 3. **Settings → Pages → Branch: `main` / (root) → Save**.
-4. En un minuto la app queda en `https://dorlychiattellino-wq.github.io/equinos/Equinos.html`.
+4. En un minuto la app queda en `https://dorlychiattellino-wq.github.io/Equinos/Equinos.html`.
 5. En el teléfono: abrir esa dirección en Chrome → menú ⋮ → **Agregar a pantalla de inicio**.
 
 Para actualizar la app más adelante: subir el `Equinos.html` y el `sw.js` nuevos de la misma forma. Los teléfonos avisan "Hay una versión nueva".
