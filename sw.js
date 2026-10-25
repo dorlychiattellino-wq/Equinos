@@ -1,8 +1,10 @@
 // Service worker de EQUINOS: guarda la app en el dispositivo para abrirla sin señal.
 // Cada vez que se sube una versión nueva, cambiar el número de CACHE (la app avisa "Hay una versión nueva").
-const CACHE = "equinos-v2026.10.25-e";
+const CACHE = "equinos-v2026.10.25-g";
 const ARCHIVOS = ["./", "./Equinos.html", "./manifest.json", "./icon-180.png", "./icon-192.png", "./icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js",
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"];
 
@@ -23,7 +25,7 @@ self.addEventListener("fetch", (e) => {
   // La base de datos (firebaseio / websocket) nunca se cachea.
   if (url.hostname.endsWith("firebaseio.com") || url.hostname.endsWith("googleapis.com")) return;
   const esApp = url.origin === self.location.origin;
-  const esLib = url.hostname === "www.gstatic.com" || url.hostname === "cdnjs.cloudflare.com";
+  const esLib = url.hostname === "www.gstatic.com" || url.hostname === "cdnjs.cloudflare.com" || url.hostname === "cdn.jsdelivr.net";
   if (!esApp && !esLib) return;
   e.respondWith((async () => {
     const c = await caches.open(CACHE);
