@@ -114,7 +114,7 @@ tr.tr td{background:#e3ebf8;font-weight:700;border-top:2px solid #9cb4e2}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
 .modal-box{background:#fff;border-radius:12px;padding:1.4rem;width:100%;max-width:520px;max-height:88vh;overflow-y:auto}
 .big{font-size:1.05rem;padding:.75rem 1.3rem}
-@media print{nav,.hbtns,.br,.bi,button,.sync-bar,.filtros{display:none!important}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}body{background:#fff}}
+@media print{@page{margin:10mm}nav,.hbtns,.br,.bi,button,.sync-bar,.filtros,input[type=search],#updBanner,.hint{display:none!important}header{background:#fff!important;color:#000!important;box-shadow:none}header h1,header p{color:#000!important}main{max-width:none;padding:0}table{font-size:.72rem}th{background:#dfe8f8!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}td{-webkit-print-color-adjust:exact;print-color-adjust:exact}.sel-list{display:none}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}body{background:#fff}}
 @media(max-width:600px){header h1{font-size:1.2rem}nav button{font-size:.8rem;padding:.6rem .7rem}.hbtns{width:100%}.arbol{grid-template-columns:1fr}.kg{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -123,7 +123,7 @@ tr.tr td{background:#e3ebf8;font-weight:700;border-top:2px solid #9cb4e2}
 <div id="root"><div class="loading"><div class="spinner"></div><span>Conectando con la base de datos...</span></div></div>
 
 <script>
-window.APP_VERSION="2026.10.25-d";
+window.APP_VERSION="2026.10.25-e";
 window.actualizarApp=async function(){
   try{ if("serviceWorker" in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); for(const r of regs)await r.unregister(); } }catch(e){}
   try{ if(window.caches){ const ks=await caches.keys(); for(const k of ks)await caches.delete(k); } }catch(e){}
@@ -249,8 +249,8 @@ const state={
   sesion:localStorage.getItem("eq_sesion")||null,
   loginModo:"operario", loginErr:"", setupErr:"",
   tab:"equinos", fichaId:null,
-  f:{q:"",genero:"",pelaje:"",estado:"",sra:"",anio:"",prop:"",orden:"rp"},
-  fe:{q:"",anio:"",rueda:"",evento:"",cab:""},
+  f:{q:"",genero:"",pelaje:"",estado:"",sra:"",anio:"",prop:"",orden:"rp",open:false},
+  fe:{q:"",anio:"",rueda:"",evento:"",cab:"",open:false},
   fr:{anio:"",vista:"evento"},
   editCab:null, editPart:null, formKey:null, partCabQ:"", partCabId:null,
   nuevoUserRol:null, editPermUser:null, modal:null,
@@ -398,6 +398,17 @@ function renderApp(){
   <main>${body}</main>${state.modal?renderModal():""}`;
 }
 
+// ── COMPARTIR (WhatsApp) / IMPRIMIR ──
+window.imprimir=function(){ window.print(); };
+window.compartirTexto=async function(titulo,texto){ try{ if(navigator.share){ await navigator.share({title:titulo,text:texto}); return; } }catch(e){ if(e&&e.name==="AbortError")return; } window.open("https://wa.me/?text="+encodeURIComponent(texto),"_blank"); };
+function btnsCompartir(fn){ return `<button class="bs" onclick="imprimir()" title="Imprimir o guardar como PDF">🖨️ PDF</button><button class="bs" style="background:#dcf8e3;border-color:#25D366;color:#075e54" onclick="${fn}" title="Compartir por WhatsApp">📲 WhatsApp</button>`; }
+const lineaCab=(c)=>"RP "+(c.rp??"")+(c.sba?" · SBA "+c.sba:"")+" · "+(c.nombre||"(sin nombre)")+(c.pelaje?" · "+c.pelaje:"")+(c.genero?" · "+c.genero:"")+(c.fechaNac?" · nac. "+fmtF(c.fechaNac):"")+(c.madre?" · Madre: "+c.madre:"")+(c.padre?" · Padre: "+c.padre:"")+[c.muerto?"MUERTO":"",c.manso?"MANSO":"",c.chipeado?"CHIPEADO":"",c.cedido?"CEDIDO":"",c.padrilloPropio?"PADRILLO PROPIO":""].filter(Boolean).map(x=>" ["+x+"]").join("");
+window.compartirEquinos=function(){ const L=filtrarCaballos(); const t="🐎 *EQUINOS – Criador 46*\n"+L.length+" equinos\n\n"+L.map(lineaCab).join("\n"); compartirTexto("Equinos",t); };
+window.compartirFicha=function(id){ const c=state.caballos[id]; if(!c)return; const P=partsDe(id); const vi=puede("verImportes"); let t="🐎 *"+(c.nombre||"(sin nombre)")+"*\nRP "+(c.rp??"")+(c.sba?" · SBA "+c.sba:" · sin SBA")+"\n"+(c.fechaNac?"Nacimiento: "+fmtF(c.fechaNac)+" ("+edad(c.fechaNac)+")\n":"")+(c.pelaje?"Pelaje: "+c.pelaje+"\n":"")+(c.genero?"Género: "+(GENEROS[c.genero]||c.genero)+"\n":"")+(c.madre?"Madre: "+c.madre+(c.propMadre?" ("+c.propMadre+")":"")+"\n":"")+(c.padre?"Padre: "+c.padre+(c.propPadre?" ("+c.propPadre+")":"")+"\n":"")+(c.propietario?"Propietario: "+c.propietario+"\n":"")+[c.muerto?"MUERTO":"",c.manso?"MANSO":"",c.chipeado?"CHIPEADO":"",c.cedido?"CEDIDO":"",c.padrilloPropio?"PADRILLO PROPIO":""].filter(Boolean).join(" · ")+(c.obs?"\nObs: "+c.obs:""); if(P.length){ t+="\n\n🏇 *Eventos ("+P.length+")*\n"+P.map(p=>fmtF(p.fecha)+" · "+p.evento+" · "+p.rueda+(p.montador?" · "+p.montador:"")+(p.resultado?" · "+p.resultado:"")+(vi&&p.importe!==""?" · "+fmt$(p.importe):"")).join("\n"); } compartirTexto("Ficha "+(c.nombre||""),t.trim()); };
+window.compartirEventos=function(){ const L=filtrarParts(); const vi=puede("verImportes"); const tot=L.reduce((s,p)=>s+(Number(p.importe)||0),0); const t="🏇 *Participaciones en eventos* ("+L.length+")\n\n"+L.map(p=>{ const c=state.caballos[p.caballoId]||{}; return fmtF(p.fecha)+" · "+p.evento+" · "+(c.nombre||"RP "+c.rp)+" · "+p.rueda+(p.montador?" · "+p.montador:"")+(p.resultado?" · "+p.resultado:"")+(vi&&p.importe!==""?" · "+fmt$(p.importe):""); }).join("\n")+(vi?"\n\n*Total: "+(fmt$(tot)||"$ 0")+"*":""); compartirTexto("Eventos",t); };
+window.compartirResumen=function(){ const el=document.getElementById("resumenTabla"); const vi=puede("verImportes"); let t="📊 *Resumen"+(state.fr.anio?" "+state.fr.anio:"")+"*\n\n"; if(el){ el.querySelectorAll("tbody tr").forEach(tr=>{ t+=[...tr.children].map(td=>td.textContent.trim()).filter(Boolean).join(" · ")+"\n"; }); } compartirTexto("Resumen",t.trim()); };
+window.compartirLista=function(){ const L=listaActual(); if(!L)return; let t="📄 *"+(L.evento||"Evento")+"*"+(L.lugar?" · "+L.lugar:"")+"\n"; if((L.desafio||[]).length){ t+="\n🏆 *DESAFÍO DE CRIADORES*\n"; L.desafio.forEach(x=>{ const c=state.caballos[x.cabId]||{}; t+=(x.suplente?"(SUPLENTE) ":"")+(x.categoria?x.categoria+" · ":"")+(x.montador?x.montador+" · ":"")+(c.nombre||"RP "+c.rp)+(c.madre?" · Madre: "+c.madre:"")+(c.padre?" · Padre: "+c.padre:"")+"\n"; }); } (L.dias||[]).forEach(d=>{ t+="\n📅 *"+diaNombre(d.fecha)+"*\n"; (d.ruedas||[]).forEach(r=>{ t+=r.rueda.toUpperCase()+": "+(r.ids||[]).map(id=>(state.caballos[id]||{}).nombre||"").filter(Boolean).join(", ")+"\n"; }); }); compartirTexto(L.evento||"Lista",t.trim()); };
+
 // ── EQUINOS: lista + alta/edición ──
 function filtrarCaballos(){
   const f=state.f; const q=normTxt(f.q);
@@ -419,9 +430,9 @@ function renderEquinos(){
   const L=filtrarCaballos(); const f=state.f; const anios=[...new Set(lista().map(c=>anioDe(c.fechaNac)).filter(Boolean))].sort().reverse();
   const sel=(v,o)=>v===o?"selected":"";
   return `${state.editCab?renderFormCab():""}
-  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">🐎 Equinos <span class="km">(${L.length} de ${lista().length})</span></h2><div class="br" style="margin:0">${puede("cargarEquinos")&&!state.editCab?`<button class="bp v" onclick="nuevoCab()">➕ Nuevo equino</button>`:""}${esAdmin()?`<button class="bs" onclick="exportarExcel()">📥 Excel</button>`:""}</div></div>
-  <div class="filtros">
-    <input id="f_q" type="search" placeholder="🔍 Buscar: nombre, RP, SBA, padre, madre…" value="${h(f.q)}" oninput="setF('q',this.value)"/>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">🐎 Equinos <span class="km">(${L.length} de ${lista().length})</span></h2><div class="br" style="margin:0">${puede("cargarEquinos")&&!state.editCab?`<button class="bp v" onclick="nuevoCab()">➕ Nuevo equino</button>`:""}${btnsCompartir("compartirEquinos()")}${esAdmin()?`<button class="bs" onclick="exportarExcel()">📥 Excel</button>`:""}</div></div>
+  ${(()=>{ const nAct=["genero","pelaje","estado","sra","anio","prop"].filter(k=>f[k]).length; return `<div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center"><input id="f_q" type="search" placeholder="🔍 Buscar: nombre, RP, SBA, padre, madre…" value="${h(f.q)}" oninput="setF('q',this.value)" style="flex:1"/><button class="bs" style="white-space:nowrap;${nAct?"background:#ffcc00;border-color:#d4a800":""}" onclick="setF('open',${f.open?"false":"true"})">⚙️ Filtros${nAct?" ("+nAct+")":""} ${f.open?"▴":"▾"}</button></div>`; })()}
+  ${f.open?`<div class="filtros">
     <select onchange="setF('estado',this.value)"><option value="" ${sel(f.estado,"")}>Todos</option><option value="vivos" ${sel(f.estado,"vivos")}>Vivos</option><option value="muertos" ${sel(f.estado,"muertos")}>Muertos</option><option value="mansos" ${sel(f.estado,"mansos")}>Mansos</option><option value="chipeados" ${sel(f.estado,"chipeados")}>Chipeados</option><option value="cedidos" ${sel(f.estado,"cedidos")}>Cedidos</option><option value="padrillos" ${sel(f.estado,"padrillos")}>Padrillos</option></select>
     <select onchange="setF('genero',this.value)"><option value="">Género: todos</option>${Object.keys(GENEROS).map(g=>`<option value="${g}" ${sel(f.genero,g)}>${GENEROS[g]} (${g})</option>`).join("")}</select>
     <select onchange="setF('pelaje',this.value)"><option value="">Pelaje: todos</option>${pelajes().map(p=>`<option value="${h(p)}" ${sel(f.pelaje,p)}>${h(p)}</option>`).join("")}</select>
@@ -429,8 +440,9 @@ function renderEquinos(){
     <select onchange="setF('anio',this.value)"><option value="">Año nac.: todos</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select>
     <select onchange="setF('prop',this.value)"><option value="">Propietario: todos</option>${propietarios().map(p=>`<option value="${h(p)}" ${sel(f.prop,p)}>${h(p)}</option>`).join("")}</select>
     <select onchange="setF('orden',this.value)"><option value="rp" ${sel(f.orden,"rp")}>Orden: RP</option><option value="nombre" ${sel(f.orden,"nombre")}>Orden: nombre</option><option value="fecha" ${sel(f.orden,"fecha")}>Orden: más nuevos</option></select>
-  </div>
-  <div class="km" style="margin-bottom:.4rem">Referencias (como en la planilla): <span class="tag muerto">MUERTO</span><span class="tag manso">MANSO</span><span class="tag chip">CHIPEADO</span><span class="tag cedido">CEDIDO</span><span class="tag padrillo">PADRILLO PROPIO</span> · Género: <span class="tag h">H</span>hembra <span class="tag mp">MP</span>macho padrillo <span class="tag mc">MC</span>macho castrado</div>
+    <button class="bs" onclick="state.f=Object.assign(state.f,{genero:'',pelaje:'',estado:'',sra:'',anio:'',prop:''});render()">✕ Limpiar filtros</button>
+  </div><div class="km" style="margin-bottom:.4rem">Referencias (como en la planilla): <span class="tag muerto">MUERTO</span><span class="tag manso">MANSO</span><span class="tag chip">CHIPEADO</span><span class="tag cedido">CEDIDO</span><span class="tag padrillo">PADRILLO PROPIO</span> · Género: <span class="tag h">H</span>hembra <span class="tag mp">MP</span>macho padrillo <span class="tag mc">MC</span>macho castrado</div>`:""}
+  
   ${L.length?`<div class="tw"><table><thead><tr><th>RP</th><th>SBA</th><th>Nombre</th><th>Nac.</th><th>Edad</th><th>Pelaje</th><th>Madre</th><th>Padre</th><th>Género</th><th>Estado</th><th>Eventos</th></tr></thead><tbody>
   ${L.map(c=>`<tr class="cl ${filaCls(c)}" onclick="verFicha('${c.id}')"><td><strong>${h(c.rp)}</strong></td><td>${c.sba?`<span class="tag sra">${h(c.sba)}</span>`:`<span class="tag nosra">sin SBA</span>`}</td><td><strong>${c.nombre?h(c.nombre):'<span class="blank">sin nombre</span>'}</strong></td><td style="white-space:nowrap">${fmtF(c.fechaNac)}</td><td>${h(edad(c.fechaNac))}</td><td>${h(c.pelaje)}</td><td>${h(c.madre)}</td><td>${h(c.padre)}</td><td>${tagGen(c)}</td><td>${tagsDe(c)}</td><td>${partsDe(c.id).length||""}</td></tr>`).join("")}
   </tbody></table></div>`:`<div class="empty">No hay equinos que coincidan con los filtros.</div>`}</div>`;
@@ -492,7 +504,7 @@ function renderFicha(){
   const primera=P.length?P[0]:null; const ultima=P.length?P[P.length-1]:null; const temporadas=new Set(P.map(p=>anioDe(p.fecha)).filter(Boolean)); const desde=primera?new Date().getFullYear()-Number(anioDe(primera.fecha)):null;
   const total=P.reduce((s,p)=>s+(Number(p.importe)||0),0); const verImp=puede("verImportes");
   return `<div class="card"><div class="ficha-head"><div style="flex:1;min-width:200px"><div class="nom">🐎 ${c.nombre?h(c.nombre):'<span class="blank">sin nombre</span>'}</div><div style="margin-top:.3rem">${tagGen(c)} ${tagsDe(c)} ${c.sba?`<span class="tag sra">SBA ${h(c.sba)}</span>`:`<span class="tag nosra">sin SBA · falta registrar en SRA</span>`}</div></div>
-    <div class="br" style="margin:0">${puede("cargarEquinos")?`<button class="bp" onclick="editarCab('${c.id}')">✏️ Editar</button>`:""}${puede("cargarEventos")?`<button class="bp v" onclick="nuevaPart('${c.id}')">🏇 Cargar evento</button>`:""}<button class="bs" onclick="window.print()">🖨️</button><button class="bs" onclick="state.fichaId=null;render()">🔍 Otro</button></div></div>
+    <div class="br" style="margin:0">${puede("cargarEquinos")?`<button class="bp" onclick="editarCab('${c.id}')">✏️ Editar</button>`:""}${puede("cargarEventos")?`<button class="bp v" onclick="nuevaPart('${c.id}')">🏇 Cargar evento</button>`:""}${btnsCompartir(`compartirFicha('${c.id}')`)}<button class="bs" onclick="state.fichaId=null;render()">🔍 Otro</button></div></div>
   <div class="dl">
     <div><b>RP</b>${h(c.rp)}</div><div><b>SBA (SRA)</b>${vacio(c.sba)}</div><div><b>Fecha de nacimiento</b>${c.fechaNac?fmtF(c.fechaNac)+' <span class="km">('+h(edad(c.fechaNac))+')</span>':vacio("")}</div>
     <div><b>Pelaje</b>${vacio(c.pelaje)}</div><div><b>Género</b>${c.genero?h(GENEROS[c.genero]||c.genero):vacio("")}</div><div><b>Propietario</b>${vacio(c.propietario)}</div>
@@ -564,11 +576,12 @@ function renderEventos(){
   const f=state.fe; const L=filtrarParts(); const verImp=puede("verImportes"); const anios=[...new Set(Object.values(state.parts).map(p=>p&&anioDe(p.fecha)).filter(Boolean))].sort().reverse(); const sel=(a,b)=>a===b?"selected":"";
   const total=L.reduce((s,p)=>s+(Number(p.importe)||0),0);
   return `${state.editPart?renderFormPart():""}
-  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">🏇 Participaciones en eventos <span class="km">(${L.length})</span></h2>${puede("cargarEventos")&&!state.editPart?`<button class="bp v" onclick="nuevaPart()">➕ Cargar participación</button>`:""}</div>
-  <div class="filtros"><input id="f_eq" type="search" placeholder="🔍 Equino, evento, montador…" value="${h(f.q)}" oninput="setFE('q',this.value)"/>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">🏇 Participaciones en eventos <span class="km">(${L.length})</span></h2><div class="br" style="margin:0">${puede("cargarEventos")&&!state.editPart?`<button class="bp v" onclick="nuevaPart()">➕ Cargar participación</button>`:""}${btnsCompartir("compartirEventos()")}</div></div>
+  ${(()=>{ const nAct=["anio","evento","rueda"].filter(k=>f[k]).length; return `<div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center"><input id="f_eq" type="search" placeholder="🔍 Equino, evento, montador…" value="${h(f.q)}" oninput="setFE('q',this.value)" style="flex:1"/><button class="bs" style="white-space:nowrap;${nAct?"background:#ffcc00;border-color:#d4a800":""}" onclick="setFE('open',${f.open?"false":"true"})">⚙️ Filtros${nAct?" ("+nAct+")":""} ${f.open?"▴":"▾"}</button></div>`; })()}
+  ${f.open?`<div class="filtros">
     <select onchange="setFE('anio',this.value)"><option value="">Año: todos</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select>
     <select onchange="setFE('evento',this.value)"><option value="">Evento: todos</option>${eventosNombres().map(e=>`<option value="${h(e)}" ${sel(f.evento,e)}>${h(e)}</option>`).join("")}</select>
-    <select onchange="setFE('rueda',this.value)"><option value="">Rueda: todas</option>${ruedas().map(r=>`<option ${sel(f.rueda,r)}>${h(r)}</option>`).join("")}</select></div>
+    <select onchange="setFE('rueda',this.value)"><option value="">Rueda: todas</option>${ruedas().map(r=>`<option ${sel(f.rueda,r)}>${h(r)}</option>`).join("")}</select><button class="bs" onclick="state.fe=Object.assign(state.fe,{anio:'',evento:'',rueda:''});render()">✕ Limpiar filtros</button></div>`:""}
   ${L.length?`<div class="tw"><table><thead><tr><th>Fecha</th><th>Evento</th><th>Equino</th><th>Rueda</th><th>Montador</th><th>Resultado</th>${verImp?"<th>Importe</th>":""}<th>Obs.</th><th></th></tr></thead><tbody>
   ${L.map(p=>{ const c=state.caballos[p.caballoId]; return `<tr><td style="white-space:nowrap">${fmtF(p.fecha)}</td><td><strong>${h(p.evento)}</strong>${p.lugar?` <span class="km">${h(p.lugar)}</span>`:""}</td><td>${c?`<span class="link" onclick="verFicha('${c.id}')">${h(c.nombre||"(sin nombre)")}</span> <span class="km">RP ${h(c.rp)}</span>`:'<span class="blank">equino borrado</span>'}</td><td>${h(p.rueda)}</td><td>${h(p.montador)}</td><td>${h(p.resultado)}</td>${verImp?`<td style="white-space:nowrap">${fmt$(p.importe)}</td>`:""}<td class="km">${h(p.obs)}</td><td style="white-space:nowrap">${puedeEditarPart(p)?`<button class="bi" onclick="editarPart('${p.id}')">✏️</button><button class="bi" onclick="eliminarPart('${p.id}')">🗑️</button>`:""}</td></tr>`; }).join("")}
   ${verImp?`<tr class="tr"><td colspan="6">Total (${L.length} participaciones)</td><td style="white-space:nowrap">${fmt$(total)||"$ 0"}</td><td colspan="2"></td></tr>`:""}</tbody></table></div>`:`<div class="empty">No hay participaciones cargadas${Object.keys(state.parts).length?" con esos filtros":""}.</div>`}</div>`;
@@ -587,10 +600,10 @@ function renderResumen(){
   else { const g={}; P.forEach(p=>{ const k=p.rueda||"(sin rueda)"; g[k]=g[k]||{r:k,n:0,imp:0,eq:new Set()}; g[k].n++; g[k].imp+=Number(p.importe)||0; g[k].eq.add(p.caballoId); }); const L=Object.values(g).sort((a,b)=>b.n-a.n);
     tabla=`<div class="tw"><table><thead><tr><th>Rueda</th><th>Participaciones</th><th>Equinos distintos</th>${verImp?"<th>Cobrado</th>":""}</tr></thead><tbody>${L.map(x=>`<tr><td><strong>${h(x.r)}</strong></td><td>${x.n}</td><td>${x.eq.size}</td>${verImp?`<td style="white-space:nowrap"><strong>${fmt$(x.imp)||"$ 0"}</strong></td>`:""}</tr>`).join("")}</tbody></table></div>`; }
   const sel=(a,b)=>a===b?"selected":"";
-  return `<div class="card"><h2>📊 Resumen</h2>
+  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">📊 Resumen</h2><div class="br" style="margin:0">${btnsCompartir("compartirResumen()")}</div></div>
   <div class="filtros"><select onchange="setFR('anio',this.value)"><option value="">Todos los años</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select><select onchange="setFR('vista',this.value)"><option value="evento" ${sel(f.vista,"evento")}>Por evento</option><option value="equino" ${sel(f.vista,"equino")}>Por equino</option><option value="rueda" ${sel(f.vista,"rueda")}>Por rueda</option></select></div>
   <div class="kg"><div class="kp"><div class="kl">Eventos</div><div class="kv">${eventos.size}</div></div><div class="kp"><div class="kl">Participaciones</div><div class="kv">${P.length}</div></div><div class="kp"><div class="kl">Equinos que participaron</div><div class="kv">${equinos.size}</div></div>${verImp?`<div class="kp"><div class="kl">Total cobrado</div><div class="kv">${fmt$(total)||"$ 0"}</div></div>`:""}</div>
-  ${P.length?tabla:'<div class="empty">Todavía no hay participaciones cargadas.</div>'}</div>`;
+  <div id="resumenTabla">${P.length?tabla:'<div class="empty">Todavía no hay participaciones cargadas.</div>'}</div></div>`;
 }
 
 // ── USUARIOS (solo admin) ──
@@ -692,7 +705,7 @@ function renderListas(){
 }
 function renderListaEdit(){
   const L=listaActual(); if(!L)return ""; const rs=ruedas(); const enDesafio=(L.desafio||[]).map(x=>x.cabId);
-  return `<div class="card" style="border:2px solid #1a5fd0"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.6rem"><h2 style="margin:0">📄 Lista para evento</h2><div class="br" style="margin:0"><button class="bp" onclick="imprimirLista()">🖨️ Imprimir / PDF</button><button class="bs" onclick="cerrarLista()">← Volver a las listas</button></div></div>
+  return `<div class="card" style="border:2px solid #1a5fd0"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.6rem"><h2 style="margin:0">📄 Lista para evento</h2><div class="br" style="margin:0"><button class="bp" onclick="imprimirLista()">🖨️ Imprimir / PDF</button><button class="bs" style="background:#dcf8e3;border-color:#25D366;color:#075e54" onclick="compartirLista()">📲 WhatsApp</button><button class="bs" onclick="cerrarLista()">← Volver a las listas</button></div></div>
   <p class="hint">Todo se guarda solo a medida que cargás.</p>
   <div class="fg"><label>Evento *<input id="l_evento" list="dl_eventos" value="${h(L.evento)}" placeholder="Ej: Jineteada de Ayacucho" onchange="setLista('evento',this.value)" autocomplete="off"/><datalist id="dl_eventos">${eventosNombres().map(e=>`<option value="${h(e)}">`).join("")}</datalist></label><label>Lugar<input id="l_lugar" value="${h(L.lugar)}" onchange="setLista('lugar',this.value)" autocomplete="off"/></label></div></div>
 
@@ -715,7 +728,7 @@ function renderListaPrint(){
   const tit=[...(L.desafio||[]).filter(x=>!x.suplente)],sup=(L.desafio||[]).filter(x=>x.suplente);
   const fila=(x)=>{ const c=state.caballos[x.cabId]||{}; return `<tr><td>${h(x.categoria)}</td><td>${h(x.montador)}</td><td>${h(c.rp)}</td><td>${h(c.sba)}</td><td>${fmtF(c.fechaNac)}</td><td><strong>${h(c.nombre)}</strong></td><td>${h(c.pelaje)}</td><td>${h(c.genero)}</td><td>${h(c.madre)}</td><td>${h(c.propMadre)}</td><td>${h(c.padre)}</td><td>${h(c.propPadre)}</td></tr>`; };
   const maxF=(d)=>Math.max(1,...(d.ruedas||[]).map(r=>(r.ids||[]).length));
-  return `<div class="noprint br" style="margin-bottom:.8rem"><button class="bp" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button><button class="bs" onclick="volverLista()">← Volver a editar</button><span class="km">En la ventana de impresión elegí "Guardar como PDF" y orientación horizontal.</span></div>
+  return `<div class="noprint br" style="margin-bottom:.8rem"><button class="bp" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button><button class="bs" style="background:#dcf8e3;border-color:#25D366;color:#075e54" onclick="compartirLista()">📲 WhatsApp</button><button class="bs" onclick="volverLista()">← Volver a editar</button><span class="km">En la ventana de impresión elegí "Guardar como PDF" y orientación horizontal.</span></div>
   <div class="hoja">
     <div style="font-size:.85rem">RAZA: 276 - CABALLO DE DESTREZA GAUCHA</div><div style="font-size:.85rem;margin-bottom:.4rem">CRIADOR: 46 - SOLSONA, OSVALDO GUSTAVO</div>
     <h1 style="font-size:1.3rem;margin:.2rem 0">${h(L.evento||"EVENTO")}${L.lugar?` · ${h(L.lugar)}`:""}</h1>
