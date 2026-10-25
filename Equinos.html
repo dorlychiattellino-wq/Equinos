@@ -123,7 +123,7 @@ tr.tr td{background:#e3ebf8;font-weight:700;border-top:2px solid #9cb4e2}
 <div id="root"><div class="loading"><div class="spinner"></div><span>Conectando con la base de datos...</span></div></div>
 
 <script>
-window.APP_VERSION="2026.10.25-c";
+window.APP_VERSION="2026.10.25-d";
 window.actualizarApp=async function(){
   try{ if("serviceWorker" in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); for(const r of regs)await r.unregister(); } }catch(e){}
   try{ if(window.caches){ const ks=await caches.keys(); for(const k of ks)await caches.delete(k); } }catch(e){}
@@ -238,8 +238,9 @@ const PERMISOS=[ // permisos que el administrador puede dar a cada operario
   ["editarEventos","Editar / borrar participaciones de otros"],
   ["verImportes","Ver los importes cobrados"],
   ["verResumen","Ver el resumen de ingresos"],
+  ["listas","Armar listas de equinos para eventos (imprimir / PDF)"],
 ];
-const PERM_DEFAULT={verEquinos:true,cargarEquinos:false,verEventos:true,cargarEventos:true,editarEventos:false,verImportes:false,verResumen:false};
+const PERM_DEFAULT={verEquinos:true,cargarEquinos:false,verEventos:true,cargarEventos:true,editarEventos:false,verImportes:false,verResumen:false,listas:false};
 
 // ══════════ ESTADO ══════════
 const state={
@@ -294,6 +295,7 @@ function tabsVisibles(){
   if(puede("verEquinos"))t.push(["ficha","📋 Ficha"]);
   if(puede("verEventos")||puede("cargarEventos"))t.push(["eventos","🏇 Eventos"]);
   if(puede("verResumen"))t.push(["resumen","📊 Resumen"]);
+  if(puede("listas"))t.push(["listas","📄 Listas"]);
   if(esAdmin())t.push(["usuarios","👥 Usuarios"]);
   if(esAdmin())t.push(["param","⚙️ Parámetros"]);
   return t;
@@ -344,7 +346,7 @@ async function cargarPlanillaInicial(silencioso){
 window.cargarPlanillaInicial=()=>cargarPlanillaInicial(false);
 
 // ══════════ RENDER ══════════
-function snapshotForm(){ const o={}; document.querySelectorAll("[id^='f_'],[id^='p_'],[id^='nu_'],[id^='lg_'],[id^='su_']").forEach(e=>{ o[e.id]=e.type==="checkbox"?e.checked:e.value; }); return o; }
+function snapshotForm(){ const o={}; document.querySelectorAll("[id^='f_'],[id^='p_'],[id^='nu_'],[id^='lg_'],[id^='su_'],[id^='l_']").forEach(e=>{ o[e.id]=e.type==="checkbox"?e.checked:e.value; }); return o; }
 function restoreForm(o){ for(const id in o){ const e=document.getElementById(id); if(!e)continue; if(e.type==="checkbox")e.checked=o[id]; else if(e.value!==o[id])e.value=o[id]; } }
 function render(){
   const root=document.getElementById("root"); if(!root)return;
@@ -388,7 +390,7 @@ function renderApp(){
   const u=usuarioActual(); const tabs=tabsVisibles(); if(!tabs.some(t=>t[0]===state.tab))state.tab=tabs.length?tabs[0][0]:"equinos";
   const cola=leerCola().length; const online=navigator.onLine!==false;
   let body="";
-  switch(state.tab){ case "equinos":body=renderEquinos();break; case "ficha":body=renderFicha();break; case "eventos":body=renderEventos();break; case "resumen":body=renderResumen();break; case "usuarios":body=renderUsuarios();break; case "param":body=renderParam();break; }
+  switch(state.tab){ case "equinos":body=renderEquinos();break; case "ficha":body=renderFicha();break; case "eventos":body=renderEventos();break; case "resumen":body=renderResumen();break; case "listas":body=renderListas();break; case "usuarios":body=renderUsuarios();break; case "param":body=renderParam();break; }
   return `<header><img src="icon-192.png" alt="EQUINOS"/><div class="htitulo"><h1>EQUINOS</h1><p>Criador 46 · Caballo de Destreza Gaucha · SRA / ACCDG</p></div>
   <div class="hbtns"><span style="font-size:.85rem;color:#eaf1ff">👤 <strong>${h(u.nombre)}</strong> <span class="tag ${esAdmin()?"sra":"chip"}">${esAdmin()?"ADMIN":"OPERARIO"}</span></span><button class="hbtn" onclick="logout()">Salir</button></div></header>
   <div class="sync-bar"><span class="sync-dot ${online&&conectado?"":"offline"}"></span><span>${online&&conectado?"Conectado · los cambios se comparten al instante":online?"Conectando…":"Sin señal · se puede seguir cargando"}</span>${cola?`<span class="pend">⏳ ${cola} cambio(s) guardados en este dispositivo, se suben solos cuando haya internet</span>`:""}<span style="margin-left:auto" class="km">${lista().length} equinos · ${Object.keys(state.parts).length} participaciones</span></div>
@@ -631,9 +633,98 @@ function renderParam(){
 }
 window.agregarRueda=async function(){ const e=document.getElementById("f_nrueda"); const r=(e.value||"").trim(); if(!r)return; const rs=[...(state.config.ruedas||[])]; if(!rs.includes(r))rs.push(r); state.config.ruedas=rs; await set("config/ruedas",rs); e.value=""; render(); };
 window.quitarRueda=async function(r){ const rs=(state.config.ruedas||[]).filter(x=>x!==r); state.config.ruedas=rs; await set("config/ruedas",rs); render(); };
-window.backup=function(){ const data={app:"EQUINOS",version:window.APP_VERSION,fecha:new Date().toISOString(),usuarios:state.usuarios,caballos:state.caballos,participaciones:state.parts,config:state.config}; const b=new Blob([JSON.stringify(data,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="Equinos_backup_"+hoy()+".json"; a.click(); };
-window.restaurar=async function(file){ if(!file)return; if(!confirm("⚠️ Restaurar un backup REEMPLAZA todos los equinos y participaciones actuales por los del archivo. ¿Continuar?"))return; try{ const d=JSON.parse(await file.text()); if(d.app!=="EQUINOS")throw new Error("El archivo no es un backup de EQUINOS"); if(d.caballos){ state.caballos=d.caballos; await set("caballos",d.caballos); } if(d.participaciones){ state.parts=d.participaciones; await set("participaciones",d.participaciones); } if(d.config){ state.config=d.config; await set("config",d.config); } if(d.usuarios&&confirm("¿Restaurar también los usuarios y sus claves?")){ state.usuarios=d.usuarios; await set("usuarios",d.usuarios); } toast("✅ Backup restaurado"); render(); }catch(e){ alert("No se pudo restaurar: "+e.message); } };
+window.backup=function(){ const data={app:"EQUINOS",version:window.APP_VERSION,fecha:new Date().toISOString(),usuarios:state.usuarios,caballos:state.caballos,participaciones:state.parts,listas:state.listas,config:state.config}; const b=new Blob([JSON.stringify(data,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="Equinos_backup_"+hoy()+".json"; a.click(); };
+window.restaurar=async function(file){ if(!file)return; if(!confirm("⚠️ Restaurar un backup REEMPLAZA todos los equinos y participaciones actuales por los del archivo. ¿Continuar?"))return; try{ const d=JSON.parse(await file.text()); if(d.app!=="EQUINOS")throw new Error("El archivo no es un backup de EQUINOS"); if(d.caballos){ state.caballos=d.caballos; await set("caballos",d.caballos); } if(d.participaciones){ state.parts=d.participaciones; await set("participaciones",d.participaciones); } if(d.listas){ state.listas=d.listas; await set("listas",d.listas); } if(d.config){ state.config=d.config; await set("config",d.config); } if(d.usuarios&&confirm("¿Restaurar también los usuarios y sus claves?")){ state.usuarios=d.usuarios; await set("usuarios",d.usuarios); } toast("✅ Backup restaurado"); render(); }catch(e){ alert("No se pudo restaurar: "+e.message); } };
 window.importarExcel=async function(file){ if(!file)return; try{ const wb=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true}); const ws=wb.Sheets["NACIMIENTOS"]||wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true}); let hi=rows.findIndex(r=>r&&String(r[0]||"").toUpperCase().replace(/\./g,"")==="RP"); if(hi<0)throw new Error("No encontré la fila de encabezados (R.P / S.B.A. / FEC. NAC. …)"); const H=rows[hi].map(x=>String(x||"").toUpperCase().replace(/\./g,"").trim()); const col=(n)=>H.findIndex(x=>x.startsWith(n)); const C={rp:col("RP"),sba:col("SBA"),fn:col("FEC NAC"),nom:col("NOMBRE"),pel:col("PELAJE"),gen:col("GENERO"),mu:col("MUERTES"),ma:col("MADRE"),marp:H.indexOf("RP",col("MADRE")),pa:col("PADRE"),parp:H.indexOf("RP2"),pm:col("PROPIET MADRE"),pp:col("PROPIET PADRE"),obs:col("OBSERVACIONES")}; const s=(r,i)=>{ if(i<0)return ""; const v=r[i]; if(v==null)return ""; if(v instanceof Date)return isNaN(v)?"":v.getFullYear()+"-"+String(v.getMonth()+1).padStart(2,"0")+"-"+String(v.getDate()).padStart(2,"0"); return String(v).trim(); }; const ex=new Set(lista().map(c=>String(c.rp))); const u=usuarioActual(); let n=0,sk=0; for(const r of rows.slice(hi+1)){ if(!r)continue; const rp=Number(r[C.rp]); if(isNaN(rp)||r[C.rp]==null)continue; const nom=s(r,C.nom),fn=s(r,C.fn),sba=s(r,C.sba); if(!nom&&!fn&&!sba){continue;} if(ex.has(String(rp))){sk++;continue;} const obs=s(r,C.obs).toUpperCase(); const c={id:uid(),rp,sba,nombre:nom.toUpperCase(),fechaNac:fn,pelaje:s(r,C.pel).toUpperCase(),genero:s(r,C.gen).toUpperCase(),madre:s(r,C.ma).toUpperCase(),madreRp:s(r,C.marp),padre:s(r,C.pa).toUpperCase(),padreRp:s(r,C.parp),propMadre:s(r,C.pm).toUpperCase(),propPadre:s(r,C.pp).toUpperCase(),propietario:"",obs:s(r,C.obs),muerto:s(r,C.mu).toUpperCase()==="SI"||obs.includes("MUERTO"),manso:obs.includes("MANSO"),chipeado:obs.includes("CHIPEADO"),cedido:obs.includes("CEDID")||obs.includes("ENTREGAD"),padrilloPropio:obs.includes("PADRILLO PROPIO"),creado:new Date().toISOString(),creadoPor:u?u.nombre:"",origen:"importado de "+file.name}; state.caballos[c.id]=c; await set("caballos/"+c.id,c); ex.add(String(rp)); n++; } toast("✅ Importados "+n+" equinos"+(sk?" · "+sk+" ya existían (no se tocaron)":"")); render(); }catch(e){ alert("No se pudo importar: "+e.message); } };
+
+
+// ── LISTAS PARA EVENTOS (planilla de jineteada para imprimir / PDF) ──
+state.listas={}; state.listaId=null; state.pickQ={}; state.listaPrint=false;
+onValue(R("listas"),s=>{ state.listas=s.val()||{}; if(state.loaded)render(); });
+function listaActual(){ return state.listaId?state.listas[state.listaId]||null:null; }
+function guardarLista(L){ const u=usuarioActual(); L.modificado=new Date().toISOString(); L.modificadoPor=u?u.nombre:""; state.listas[L.id]=L; set("listas/"+L.id,L); }
+window.nuevaLista=function(){ const u=usuarioActual(); const L={id:uid(),evento:"",lugar:"",desafio:[],dias:[],creado:new Date().toISOString(),creadoPor:u?u.nombre:""}; guardarLista(L); state.listaId=L.id; state.listaPrint=false; render(); setTimeout(()=>{const e=document.getElementById("l_evento");if(e)e.focus();},40); };
+window.abrirLista=function(id){ state.listaId=id; state.listaPrint=false; state.pickQ={}; render(); window.scrollTo({top:0}); };
+window.cerrarLista=function(){ state.listaId=null; state.listaPrint=false; state.pickQ={}; render(); };
+window.eliminarLista=function(id){ const L=state.listas[id]; if(!L)return; if(!confirm("¿Borrar la lista \""+(L.evento||"sin nombre")+"\"?"))return; delete state.listas[id]; remove("listas/"+id); if(state.listaId===id)state.listaId=null; render(); };
+window.duplicarLista=function(id){ const L=state.listas[id]; if(!L)return; const N=JSON.parse(JSON.stringify(L)); N.id=uid(); N.evento=(L.evento||"")+" (copia)"; N.creado=new Date().toISOString(); guardarLista(N); state.listaId=N.id; render(); };
+window.setLista=function(k,v){ const L=listaActual(); if(!L)return; L[k]=v; guardarLista(L); };
+window.setPick=function(key,v){ state.pickQ[key]=v; render(); };
+function picker(key,onPickJs,excluir){ // buscador de equino en línea: devuelve HTML
+  const q=normTxt(state.pickQ[key]||""); const ex=new Set(excluir||[]);
+  const cands=q?lista().filter(c=>!c.muerto&&!ex.has(c.id)&&q.split(" ").every(w=>normTxt([c.nombre,c.rp,c.sba,c.pelaje].join(" ")).includes(w))).slice(0,10):[];
+  return `<div style="position:relative"><input id="pk_${key}" type="search" placeholder="🔍 Agregar equino (nombre o RP)…" value="${h(state.pickQ[key]||"")}" oninput="setPick('${key}',this.value)" autocomplete="off" style="padding:.45rem .55rem;font-size:.92rem"/>
+  ${q?`<div class="sel-list" style="position:absolute;left:0;right:0;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.18)">${cands.map(c=>`<div class="sel-item" onclick="${onPickJs.replace("%ID%",c.id)}"><strong>${h(c.nombre||"(sin nombre)")}</strong> · RP ${h(c.rp)} <span class="km">${h(c.pelaje)} ${tagGen(c)}</span></div>`).join("")||'<div class="empty" style="padding:.6rem">No se encontró</div>'}</div>`:""}</div>`;
+}
+// Desafío de criadores (con padres y madres)
+window.desafioAdd=function(cabId){ const L=listaActual(); if(!L)return; L.desafio=L.desafio||[]; L.desafio.push({cabId,categoria:"",montador:"",suplente:false}); state.pickQ.desafio=""; guardarLista(L); render(); };
+window.desafioSet=function(i,k,v){ const L=listaActual(); if(!L||!L.desafio[i])return; L.desafio[i][k]=v; guardarLista(L); if(k==="suplente"||k==="categoria")render(); };
+window.desafioDel=function(i){ const L=listaActual(); if(!L)return; L.desafio.splice(i,1); guardarLista(L); render(); };
+window.desafioMove=function(i,d){ const L=listaActual(); const a=L.desafio; const j=i+d; if(j<0||j>=a.length)return; [a[i],a[j]]=[a[j],a[i]]; guardarLista(L); render(); };
+// Días con ruedas (solo nombre)
+window.diaAdd=function(){ const L=listaActual(); if(!L)return; L.dias=L.dias||[]; const ult=L.dias[L.dias.length-1]; let f=hoy(); if(ult&&ult.fecha){ const d=new Date(ult.fecha+"T00:00:00"); d.setDate(d.getDate()+1); f=d.toISOString().slice(0,10); } L.dias.push({fecha:f,ruedas:[{rueda:"Basto",ids:[]},{rueda:"Grupa",ids:[]},{rueda:"Crina",ids:[]}]}); guardarLista(L); render(); };
+window.diaSet=function(d,k,v){ const L=listaActual(); if(!L||!L.dias[d])return; L.dias[d][k]=v; guardarLista(L); render(); };
+window.diaDel=function(d){ const L=listaActual(); if(!L)return; if(!confirm("¿Quitar este día de la lista?"))return; L.dias.splice(d,1); guardarLista(L); render(); };
+window.ruedaAdd=function(d,v){ if(!v)return; const L=listaActual(); if(!L||!L.dias[d])return; let r=v; if(v==="__otra"){ r=prompt("Nombre de la columna (ej: Final crina):"); if(!r||!r.trim())return; r=r.trim(); } L.dias[d].ruedas=L.dias[d].ruedas||[]; L.dias[d].ruedas.push({rueda:r,ids:[]}); guardarLista(L); render(); };
+window.ruedaDel=function(d,r){ const L=listaActual(); if(!L)return; const R_=L.dias[d].ruedas[r]; if((R_.ids||[]).length&&!confirm("La columna "+R_.rueda+" tiene "+R_.ids.length+" equino(s). ¿Quitarla igual?"))return; L.dias[d].ruedas.splice(r,1); guardarLista(L); render(); };
+window.ruedaAddCab=function(d,r,cabId){ const L=listaActual(); if(!L)return; const R_=L.dias[d].ruedas[r]; R_.ids=R_.ids||[]; if(!R_.ids.includes(cabId))R_.ids.push(cabId); state.pickQ["d"+d+"r"+r]=""; guardarLista(L); render(); };
+window.ruedaDelCab=function(d,r,i){ const L=listaActual(); if(!L)return; L.dias[d].ruedas[r].ids.splice(i,1); guardarLista(L); render(); };
+window.ruedaMoveCab=function(d,r,i,dir){ const L=listaActual(); const a=L.dias[d].ruedas[r].ids; const j=i+dir; if(j<0||j>=a.length)return; [a[i],a[j]]=[a[j],a[i]]; guardarLista(L); render(); };
+window.imprimirLista=function(){ state.listaPrint=true; render(); setTimeout(()=>window.print(),400); };
+window.volverLista=function(){ state.listaPrint=false; render(); };
+window.listaAParticipaciones=async function(){
+  const L=listaActual(); if(!L)return; if(!L.evento)return alert("Poné el nombre del evento primero.");
+  const u=usuarioActual(); let n=0,rep=0;
+  for(const d of (L.dias||[])){ if(!d.fecha)continue; for(const R_ of (d.ruedas||[])){ for(const id of (R_.ids||[])){ if(!state.caballos[id])continue;
+    const dup=Object.values(state.parts).find(x=>x&&x.caballoId===id&&x.fecha===d.fecha&&x.rueda===R_.rueda&&normTxt(x.evento)===normTxt(L.evento)); if(dup){rep++;continue;}
+    const p={id:uid(),caballoId:id,fecha:d.fecha,evento:L.evento,lugar:L.lugar||"",rueda:R_.rueda,importe:"",resultado:"",montador:"",obs:"",creado:new Date().toISOString(),creadoPor:u?u.nombre:"",origen:"lista"}; state.parts[p.id]=p; await set("participaciones/"+p.id,p); n++; } } }
+  toast("✅ "+n+" participación(es) cargadas en Eventos"+(rep?" · "+rep+" ya existían":"")+". Después completás importe y resultado."); render();
+};
+const DIAS_ES=["DOMINGO","LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES","SÁBADO"];
+function diaNombre(f){ if(!f)return "(sin fecha)"; const d=new Date(f+"T00:00:00"); if(isNaN(d))return f; return DIAS_ES[d.getDay()]+" "+d.getDate()+"/"+(d.getMonth()+1); }
+function renderListas(){
+  if(state.listaId&&state.listaPrint)return renderListaPrint();
+  if(state.listaId)return renderListaEdit();
+  const Ls=Object.values(state.listas).filter(Boolean).sort((a,b)=>(b.creado||"").localeCompare(a.creado||""));
+  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">📄 Listas para eventos</h2><button class="bp v" onclick="nuevaLista()">➕ Nueva lista</button></div>
+  <p class="hint">Armá la planilla de los equinos que van a un evento y después imprimila o guardala como PDF. Tiene dos partes: el <strong>Desafío de criadores</strong> (con padres, madres y propietarios) y las <strong>ruedas de cada día</strong> (solo el nombre). Cuando el evento ya pasó, con un botón se cargan todas las participaciones en Eventos.</p>
+  ${Ls.length?`<div class="tw"><table><thead><tr><th>Evento</th><th>Lugar</th><th>Días</th><th>Desafío</th><th>En ruedas</th><th>Armada por</th><th></th></tr></thead><tbody>${Ls.map(L=>{ const ds=(L.dias||[]).map(d=>fmtF(d.fecha)).filter(Boolean).join(", "); const n=(L.dias||[]).reduce((s,d)=>s+(d.ruedas||[]).reduce((t,r)=>t+(r.ids||[]).length,0),0); return `<tr class="cl" onclick="abrirLista('${L.id}')"><td><strong>${L.evento?h(L.evento):'<span class="blank">sin nombre</span>'}</strong></td><td>${h(L.lugar)}</td><td style="white-space:nowrap">${ds||"—"}</td><td>${(L.desafio||[]).length}</td><td>${n}</td><td class="km">${h(L.creadoPor)}</td><td style="white-space:nowrap" onclick="event.stopPropagation()"><button class="bi" title="Duplicar" onclick="duplicarLista('${L.id}')">📑</button><button class="bi" title="Borrar" onclick="eliminarLista('${L.id}')">🗑️</button></td></tr>`; }).join("")}</tbody></table></div>`:'<div class="empty">Todavía no hay listas. Tocá "Nueva lista" para armar la primera.</div>'}</div>`;
+}
+function renderListaEdit(){
+  const L=listaActual(); if(!L)return ""; const rs=ruedas(); const enDesafio=(L.desafio||[]).map(x=>x.cabId);
+  return `<div class="card" style="border:2px solid #1a5fd0"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.6rem"><h2 style="margin:0">📄 Lista para evento</h2><div class="br" style="margin:0"><button class="bp" onclick="imprimirLista()">🖨️ Imprimir / PDF</button><button class="bs" onclick="cerrarLista()">← Volver a las listas</button></div></div>
+  <p class="hint">Todo se guarda solo a medida que cargás.</p>
+  <div class="fg"><label>Evento *<input id="l_evento" list="dl_eventos" value="${h(L.evento)}" placeholder="Ej: Jineteada de Ayacucho" onchange="setLista('evento',this.value)" autocomplete="off"/><datalist id="dl_eventos">${eventosNombres().map(e=>`<option value="${h(e)}">`).join("")}</datalist></label><label>Lugar<input id="l_lugar" value="${h(L.lugar)}" onchange="setLista('lugar',this.value)" autocomplete="off"/></label></div></div>
+
+  <div class="card"><h2>🏆 Desafío de criadores <span class="km">(va con padres, madres y propietarios)</span></h2>
+  ${(L.desafio||[]).length?`<div class="tw"><table><thead><tr><th></th><th>Categoría</th><th>Montador</th><th>Equino</th><th>Nac.</th><th>Pelaje</th><th>Madre</th><th>Padre</th><th>Suplente</th><th></th></tr></thead><tbody>${L.desafio.map((x,i)=>{ const c=state.caballos[x.cabId]||{}; return `<tr style="${x.suplente?"background:#fff6bf":""}"><td style="white-space:nowrap"><button class="bi" onclick="desafioMove(${i},-1)">▲</button><button class="bi" onclick="desafioMove(${i},1)">▼</button></td><td><input list="dl_ruedas" value="${h(x.categoria)}" onchange="desafioSet(${i},'categoria',this.value)" style="min-width:130px;padding:.35rem .5rem;font-size:.9rem" placeholder="Rueda"/></td><td><input value="${h(x.montador)}" onchange="desafioSet(${i},'montador',this.value)" style="min-width:150px;padding:.35rem .5rem;font-size:.9rem" placeholder="Apellido, Nombre"/></td><td><strong>${h(c.nombre||"(sin nombre)")}</strong> <span class="km">RP ${h(c.rp)}</span></td><td style="white-space:nowrap">${fmtF(c.fechaNac)}</td><td>${h(c.pelaje)}</td><td>${h(c.madre)}</td><td>${h(c.padre)}</td><td><input type="checkbox" ${x.suplente?"checked":""} onchange="desafioSet(${i},'suplente',this.checked)" style="width:20px;height:20px"/></td><td><button class="bi" onclick="desafioDel(${i})">🗑️</button></td></tr>`; }).join("")}</tbody></table></div>`:'<p class="hint">Todavía no hay equinos en el desafío.</p>'}
+  <datalist id="dl_ruedas">${rs.map(r=>`<option value="${h(r)}">`).join("")}</datalist>
+  <div style="max-width:420px;margin-top:.5rem">${picker("desafio","desafioAdd('%ID%')",enDesafio)}</div></div>
+
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem"><h2 style="margin:0">📅 Ruedas por día <span class="km">(solo el nombre)</span></h2><button class="bp v" onclick="diaAdd()">➕ Agregar día</button></div>
+  ${(L.dias||[]).map((d,di)=>`<div style="border:1.5px solid #9cb4e2;border-radius:10px;padding:.8rem;margin-top:.9rem;background:#f8fafd">
+    <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem"><strong style="font-size:1.05rem;color:#0033a0">${diaNombre(d.fecha)}</strong><input type="date" value="${h(d.fecha)}" onchange="diaSet(${di},'fecha',this.value)" style="width:auto;padding:.35rem .5rem"/><select onchange="ruedaAdd(${di},this.value);this.value=''" style="width:auto;padding:.35rem .5rem"><option value="">➕ Agregar columna…</option>${rs.map(r=>`<option>${h(r)}</option>`).join("")}<option value="__otra">Otra…</option></select><button class="bs" style="margin-left:auto;padding:.3rem .6rem" onclick="diaDel(${di})">🗑️ Quitar día</button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.7rem">${(d.ruedas||[]).map((R_,ri)=>`<div style="background:#fff;border:1px solid #d5deee;border-radius:8px;padding:.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem"><strong>${h(R_.rueda)}</strong><button class="bi" onclick="ruedaDel(${di},${ri})" title="Quitar columna">✕</button></div>
+      ${(R_.ids||[]).map((id,i)=>{ const c=state.caballos[id]; return `<div style="display:flex;align-items:center;gap:.3rem;padding:.25rem 0;border-bottom:1px dashed #e3e9f3"><span style="flex:1;font-weight:700">${c?h(c.nombre||"RP "+c.rp):'<span class="blank">equino borrado</span>'}</span><button class="bi" style="font-size:.8rem" onclick="ruedaMoveCab(${di},${ri},${i},-1)">▲</button><button class="bi" style="font-size:.8rem" onclick="ruedaMoveCab(${di},${ri},${i},1)">▼</button><button class="bi" onclick="ruedaDelCab(${di},${ri},${i})">🗑️</button></div>`; }).join("")}
+      <div style="margin-top:.4rem">${picker("d"+di+"r"+ri,`ruedaAddCab(${di},${ri},'%ID%')`,R_.ids||[])}</div></div>`).join("")||'<p class="hint">Agregá columnas (Basto, Grupa, Crina…) con el selector de arriba.</p>'}</div></div>`).join("")||'<p class="hint" style="margin-top:.6rem">Agregá un día: elegís la fecha y las columnas de ruedas, y vas sumando los equinos por nombre.</p>'}
+  </div>
+  <div class="card"><h3>Cuando el evento ya pasó</h3><p class="hint">Este botón crea en 🏇 Eventos una participación por cada equino de cada rueda y día (sin importe ni resultado, para completar después). No repite las que ya existan.</p><div class="br"><button class="bp" onclick="listaAParticipaciones()">📥 Cargar participaciones en Eventos</button></div></div>`;
+}
+function renderListaPrint(){
+  const L=listaActual(); if(!L)return "";
+  const tit=[...(L.desafio||[]).filter(x=>!x.suplente)],sup=(L.desafio||[]).filter(x=>x.suplente);
+  const fila=(x)=>{ const c=state.caballos[x.cabId]||{}; return `<tr><td>${h(x.categoria)}</td><td>${h(x.montador)}</td><td>${h(c.rp)}</td><td>${h(c.sba)}</td><td>${fmtF(c.fechaNac)}</td><td><strong>${h(c.nombre)}</strong></td><td>${h(c.pelaje)}</td><td>${h(c.genero)}</td><td>${h(c.madre)}</td><td>${h(c.propMadre)}</td><td>${h(c.padre)}</td><td>${h(c.propPadre)}</td></tr>`; };
+  const maxF=(d)=>Math.max(1,...(d.ruedas||[]).map(r=>(r.ids||[]).length));
+  return `<div class="noprint br" style="margin-bottom:.8rem"><button class="bp" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button><button class="bs" onclick="volverLista()">← Volver a editar</button><span class="km">En la ventana de impresión elegí "Guardar como PDF" y orientación horizontal.</span></div>
+  <div class="hoja">
+    <div style="font-size:.85rem">RAZA: 276 - CABALLO DE DESTREZA GAUCHA</div><div style="font-size:.85rem;margin-bottom:.4rem">CRIADOR: 46 - SOLSONA, OSVALDO GUSTAVO</div>
+    <h1 style="font-size:1.3rem;margin:.2rem 0">${h(L.evento||"EVENTO")}${L.lugar?` · ${h(L.lugar)}`:""}</h1>
+    ${(L.desafio||[]).length?`<h2 style="margin:.8rem 0 .3rem;font-size:1.05rem">DESAFÍO DE CRIADORES</h2>
+    <table class="tp"><thead><tr><th>CATEGORÍA</th><th>MONTADOR</th><th>R.P</th><th>S.B.A.</th><th>FEC. NAC.</th><th>NOMBRE/CRÍA</th><th>PELAJE</th><th>GÉN.</th><th>MADRE</th><th>PROPIET. MADRE</th><th>PADRE</th><th>PROPIET. PADRE</th></tr></thead><tbody>${tit.map(fila).join("")}${sup.length?`<tr><td colspan="12" style="font-weight:800;background:#fff6bf">SUPLENTE${sup.length>1?"S":""}</td></tr>${sup.map(fila).join("")}`:""}</tbody></table>`:""}
+    ${(L.dias||[]).length?`<div class="dias">${L.dias.map(d=>`<div class="dia"><h2 style="margin:.9rem 0 .3rem;font-size:1.05rem">${diaNombre(d.fecha)}</h2><table class="tp"><thead><tr>${(d.ruedas||[]).map(r=>`<th>${h(r.rueda).toUpperCase()}</th>`).join("")}</tr></thead><tbody>${Array.from({length:maxF(d)}).map((_,i)=>`<tr>${(d.ruedas||[]).map(r=>{ const c=state.caballos[(r.ids||[])[i]]; return `<td>${c?h(c.nombre||"RP "+c.rp):""}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`).join("")}</div>`:""}
+  </div>
+  <style>.hoja{background:#fff;padding:1rem;border:1px solid #d5deee;border-radius:10px;color:#000}.tp{width:100%;border-collapse:collapse;font-size:.8rem}.tp th{background:#dfe8f8;color:#000;border:1px solid #777;padding:.3rem .4rem;font-size:.72rem;position:static}.tp td{border:1px solid #777;padding:.3rem .4rem;min-height:1.4em;text-transform:uppercase}.dias{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-start}.dia{flex:1;min-width:260px}@media print{@page{size:landscape;margin:10mm}header,nav,.sync-bar,.noprint,#updBanner{display:none!important}main{padding:0;max-width:none}.hoja{border:none;padding:0;border-radius:0}.tp td,.tp th{padding:.2rem .3rem}.tp th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>`;
+}
 
 function renderModal(){ return ""; }
 
