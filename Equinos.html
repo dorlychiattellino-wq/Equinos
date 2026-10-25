@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EQUINOS</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EQUINOS">
+<meta name="theme-color" content="#4a2c14">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overscroll-behavior-y:none}
+body{font-family:Arial,Helvetica,sans-serif;background:#f6f1e7;color:#2a1f0e;min-height:100vh;overflow-x:hidden}
+header{background:linear-gradient(135deg,#4a2c14,#6b3f1d,#2e1a0a);color:#f3e7cf;padding:.8rem 1.2rem;display:flex;align-items:center;gap:.9rem;box-shadow:0 3px 12px rgba(0,0,0,.3);flex-wrap:wrap}
+header img{height:52px;width:52px;object-fit:contain;border-radius:12px;flex-shrink:0;background:#2e1a0a}
+.htitulo{flex:1;min-width:160px}
+header h1{font-size:1.45rem;color:#f8ecd2;letter-spacing:.5px}
+header p{font-size:.78rem;color:#d9b98a}
+.hbtns{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.hbtn{display:flex;align-items:center;gap:.35rem;background:rgba(255,255,255,.13);color:#f8ecd2;border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:.4rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.hbtn:hover{background:rgba(255,255,255,.23)}
+.sync-bar{background:#2e1a0a;border-bottom:1px solid #6b3f1d;padding:.35rem 1.2rem;font-size:.78rem;color:#d9b98a;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.sync-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-dot.offline{background:#f87171;animation:none}
+nav{background:#4a2c14;display:flex;overflow-x:auto;padding:0 .4rem;position:sticky;top:0;z-index:50}
+nav button{background:none;border:none;border-bottom:3px solid transparent;color:#d9b98a;padding:.7rem .95rem;cursor:pointer;font-size:.86rem;white-space:nowrap;font-weight:700;font-family:inherit}
+nav button:hover{color:#f8ecd2}
+nav button.active{color:#f8ecd2;border-bottom-color:#e0a050;background:rgba(255,255,255,.07)}
+main{max-width:1100px;margin:0 auto;padding:1rem .9rem 4rem}
+.card{scroll-margin-top:64px;background:#fff;border-radius:12px;padding:1.2rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(74,44,20,.08);border:1px solid #e3d9c6;overflow:hidden}
+h2{font-size:1.1rem;color:#4a2c14;margin-bottom:.8rem;font-weight:700}
+h3{font-size:.95rem;color:#4a2c14;margin-bottom:.7rem;font-weight:700}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.7rem;margin-bottom:.8rem}
+.fg label,.lbl{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem;font-weight:700;color:#4a3820;min-width:0}
+.fg .s2{grid-column:span 2}
+input,select,textarea{border:1.5px solid #c9bfae;border-radius:8px;padding:.55rem .6rem;font-size:1rem;font-family:inherit;background:#fbf9f4;color:#2a1f0e;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#b8762a;box-shadow:0 0 0 3px rgba(184,118,42,.15)}
+textarea{min-height:64px;resize:vertical}
+@media(max-width:700px){.fg{grid-template-columns:1fr 1fr}.fg .s2{grid-column:1 / -1}}
+@media(max-width:420px){.fg{grid-template-columns:1fr}}
+.br{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem;align-items:center}
+.bp{background:#4a2c14;color:#f8ecd2;border:none;border-radius:8px;padding:.6rem 1.2rem;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit}
+.bp:hover{background:#6b3f1d}
+.bp.v{background:#2f6b2a}.bp.v:hover{background:#3d8a36}
+.bp.r{background:#a8321f}.bp.r:hover{background:#c9402a}
+.bs{background:#f0e6d2;color:#4a2c14;border:1.5px solid #c9a97a;border-radius:8px;padding:.55rem 1rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit}
+.bs:hover{background:#e6d8bb}
+.bi{background:none;border:none;cursor:pointer;font-size:1.05rem;padding:.2rem .3rem}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:#4a2c14;color:#f3e7cf;padding:.5rem .6rem;text-align:left;font-weight:700;white-space:nowrap;position:sticky;top:0}
+td{padding:.45rem .6rem;border-bottom:1px solid #ece4d4;vertical-align:middle}
+tr.cl{cursor:pointer}
+tr.cl:hover td{background:#f6f1e7}
+tr.tr td{background:#f0e9db;font-weight:700;border-top:2px solid #c9a97a}
+.empty{text-align:center;color:#8a7a60;padding:1.5rem;font-style:italic}
+.hint{font-size:.82rem;color:#7a6650;margin-bottom:.7rem;font-style:italic;line-height:1.4}
+.tag{display:inline-block;border-radius:6px;padding:.12rem .5rem;font-size:.74rem;font-weight:800;letter-spacing:.3px;margin-right:.25rem;white-space:nowrap}
+.tag.h{background:#f5d7e3;color:#8a2c55}.tag.mp{background:#d8e6f7;color:#1f4a86}.tag.mc{background:#e0e0e0;color:#444}
+.tag.muerto{background:#f8c9c3;color:#8a1d10}.tag.manso{background:#fff0a8;color:#6a5200}.tag.cedido{background:#f3d5cf;color:#7a3a2a}.tag.padrillo{background:#c7e5f8;color:#114a74}.tag.chip{background:#c9f0c0;color:#1b5a12}.tag.sra{background:#e7d6b5;color:#4a2c14}.tag.nosra{background:#eee;color:#777;font-weight:600}
+.kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem;margin-bottom:.8rem}
+.kp{background:#f6f1e7;border-radius:10px;padding:.75rem .9rem;border:1px solid #e3d9c6}
+.kl{font-size:.7rem;font-weight:800;color:#7a6650;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem}
+.kv{font-size:1.25rem;color:#4a2c14;font-weight:800}
+.km{font-size:.74rem;color:#8a7a60}
+.ficha-head{display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:.8rem}
+.ficha-head .nom{font-size:1.5rem;font-weight:900;color:#4a2c14}
+.dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.5rem .9rem}
+.dl div{font-size:.9rem;padding:.35rem 0;border-bottom:1px dashed #e3d9c6}
+.dl b{display:block;font-size:.7rem;color:#7a6650;text-transform:uppercase;letter-spacing:.04em;font-weight:800}
+.blank{color:#b0a48e;font-style:italic;font-weight:400}
+.arbol{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;align-items:center}
+.nodo{background:#f6f1e7;border:1.5px solid #c9a97a;border-radius:10px;padding:.5rem .6rem;font-size:.85rem;text-align:center}
+.nodo.yo{background:#4a2c14;color:#f8ecd2;border-color:#4a2c14;font-weight:800;font-size:1rem}
+.nodo.link{cursor:pointer;text-decoration:underline dotted}
+.nodo small{display:block;color:#8a7a60;font-size:.72rem;font-weight:400}
+.nodo.yo small{color:#d9b98a}
+.col{display:flex;flex-direction:column;gap:.5rem}
+.link{color:#8a4f1a;text-decoration:underline;cursor:pointer;font-weight:700}
+.sel-list{border:1.5px solid #c9bfae;border-radius:8px;max-height:220px;overflow-y:auto;background:#fff}
+.sel-item{padding:.5rem .6rem;border-bottom:1px solid #eee;cursor:pointer;font-size:.9rem}
+.sel-item:hover,.sel-item.on{background:#f0e6d2}
+.chk{display:flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.35rem 0;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:#4a2c14}
+.user-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;border-left:4px solid #b8762a;background:#fdfbf6;border-radius:8px;padding:.7rem .9rem;margin-bottom:.55rem}
+.user-row.adm{border-left-color:#4a2c14}
+.user-row.baja{opacity:.6;border-left-color:#aaa}
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.2rem .8rem;margin-top:.4rem;width:100%}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;color:#6b3f1d;font-size:1.1rem}
+.spinner{width:42px;height:42px;border:4px solid #e3d2b4;border-top-color:#6b3f1d;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#4a2c14;border:1px solid #6b3f1d;border-radius:10px;padding:12px 20px;color:#f8ecd2;font-weight:700;z-index:2000;box-shadow:0 8px 32px rgba(0,0,0,.3);max-width:92vw;text-align:center}
+.login-box{max-width:420px;margin:6vh auto;background:#fff;border-radius:14px;padding:1.6rem;box-shadow:0 10px 40px rgba(74,44,20,.15);border:1px solid #e3d9c6}
+.login-box .ico{text-align:center;font-size:3.4rem;line-height:1}
+.login-box h1{text-align:center;color:#4a2c14;font-size:1.6rem;letter-spacing:2px;margin:.3rem 0 .2rem}
+.login-box p.sub{text-align:center;color:#8a7a60;font-size:.85rem;margin-bottom:1rem}
+.login-box label{display:block;font-size:.82rem;font-weight:700;color:#4a3820;margin:.6rem 0}
+.login-box input{margin-top:.25rem}
+.err{background:#fde8e4;color:#8a1d10;border-radius:8px;padding:.55rem .8rem;font-size:.88rem;margin:.6rem 0;font-weight:600}
+.segm{display:flex;background:#f0e6d2;border-radius:10px;padding:4px;gap:4px;margin-bottom:.6rem}
+.segm button{flex:1;border:none;border-radius:8px;padding:.6rem;font-weight:800;cursor:pointer;font-family:inherit;background:transparent;color:#7a6650;font-size:.95rem}
+.segm button.on{background:#fff;color:#4a2c14;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.pend{background:#fff5df;color:#8a5a10;border-radius:6px;padding:.15rem .55rem;font-size:.78rem;font-weight:700}
+.filtros{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem;margin-bottom:.7rem}
+.filtros input,.filtros select{padding:.5rem .55rem;font-size:.92rem}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:#fff;border-radius:12px;padding:1.4rem;width:100%;max-width:520px;max-height:88vh;overflow-y:auto}
+.big{font-size:1.05rem;padding:.75rem 1.3rem}
+@media print{nav,.hbtns,.br,.bi,button,.sync-bar,.filtros{display:none!important}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}body{background:#fff}}
+@media(max-width:600px){header h1{font-size:1.2rem}nav button{font-size:.8rem;padding:.6rem .7rem}.hbtns{width:100%}.arbol{grid-template-columns:1fr}.kg{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="updBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#e08a20;color:#fff;padding:.8rem 1rem;justify-content:space-between;align-items:center;gap:.6rem;font-weight:700;box-shadow:0 -2px 8px rgba(0,0,0,.3)"><span>🆕 Hay una versión nueva de EQUINOS.</span><button onclick="actualizarApp()" style="background:#fff;color:#7a4010;border:none;border-radius:8px;padding:.6rem 1rem;font-weight:800;font-size:1rem;width:auto">Actualizar ahora</button></div>
+<div id="root"><div class="loading"><div class="spinner"></div><span>Conectando con la base de datos...</span></div></div>
+
+<script>
+window.APP_VERSION="2026.10.25-a";
+window.actualizarApp=async function(){
+  try{ if("serviceWorker" in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); for(const r of regs)await r.unregister(); } }catch(e){}
+  try{ if(window.caches){ const ks=await caches.keys(); for(const k of ks)await caches.delete(k); } }catch(e){}
+  location.reload();
+};
+if("serviceWorker" in navigator){
+  window.addEventListener("load",async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register("sw.js",{updateViaCache:"none"});
+      reg.update().catch(()=>{});
+      reg.addEventListener("updatefound",()=>{ const nw=reg.installing; if(!nw)return; nw.addEventListener("statechange",()=>{ if(nw.state==="installed"&&navigator.serviceWorker.controller){ const b=document.getElementById("updBanner"); if(b)b.style.display="flex"; } }); });
+      if(reg.waiting&&navigator.serviceWorker.controller){ const b=document.getElementById("updBanner"); if(b)b.style.display="flex"; }
+    }catch(e){}
+  });
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set as _set, get, remove as _remove, onValue as _onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIGURACIÓN DE FIREBASE
+   Por defecto usa el MISMO proyecto de Firebase que Stock Ganadero,
+   pero todos los datos de EQUINOS viven aparte, bajo la rama "equinos/"
+   (usuarios, caballos y eventos propios; no se mezclan con el ganado).
+   Si algún día querés un proyecto separado: creá uno en
+   console.firebase.google.com (Realtime Database), pegá acá su config
+   y subí las reglas del archivo database.rules.json.
+   ═══════════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBRHHCKsQ1Sz8o_hJ3Q0oKFiqaSWCyr5Wg",
+  authDomain: "stock-ganadero-48715.firebaseapp.com",
+  databaseURL: "https://stock-ganadero-48715-default-rtdb.firebaseio.com",
+  projectId: "stock-ganadero-48715",
+  storageBucket: "stock-ganadero-48715.firebasestorage.app",
+  messagingSenderId: "853019546392",
+  appId: "1:853019546392:web:6ab58bde61caeb90ffc46d"
+};
+const RAIZ="equinos"; // rama de la base de datos donde vive esta app
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getDatabase(firebaseApp);
+const R=(p)=>ref(db,RAIZ+"/"+p);
+
+/* ══════════ CAPA OFFLINE ══════════
+   1) Cache local (IndexedDB): cada dato que llega de Firebase se guarda en el dispositivo.
+      Al abrir sin señal, la app arranca con los últimos datos vistos.
+   2) Cola de escrituras: lo que se carga/edita sin señal queda guardado en el dispositivo
+      y se sube solo cuando vuelve internet (aunque se haya cerrado la app).
+   3) Cada registro tiene un id único generado en el dispositivo (fecha + azar), y se guarda
+      en su propia ruta: dos operarios cargando a la vez nunca se pisan ni se duplican. */
+function pathOf(r){ try{ return decodeURIComponent(new URL(r.toString()).pathname.slice(1)); }catch(e){ return ""; } }
+const _idb=(()=>{ let p=null; return ()=>{ if(p)return p; p=new Promise((res,rej)=>{ try{ const q=indexedDB.open("eq_cache",1); q.onupgradeneeded=()=>{ q.result.createObjectStore("kv"); }; q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }catch(e){ rej(e); } }); return p; }; })();
+function cacheGet(k){ return _idb().then(db=>new Promise((res)=>{ try{ const t=db.transaction("kv","readonly").objectStore("kv").get(k); t.onsuccess=()=>res(t.result===undefined?null:t.result); t.onerror=()=>res(null); }catch(e){ res(null); } })).catch(()=>{ try{ const c=localStorage.getItem("eqcache_"+k); return c===null?null:JSON.parse(c); }catch(e){ return null; } }); }
+function cacheSet(k,v){ return _idb().then(db=>new Promise((res)=>{ try{ const t=db.transaction("kv","readwrite"); t.objectStore("kv").put(v,k); t.oncomplete=()=>res(true); t.onerror=()=>res(false); }catch(e){ res(false); } })).catch(()=>{ try{ localStorage.setItem("eqcache_"+k,JSON.stringify(v)); return true; }catch(e){ return false; } }); }
+let _cacheHits=0;
+function onValue(r,cb){
+  const path=pathOf(r); let llegoRed=false;
+  cacheGet(path).then(v=>{ if(v===null)return; _cacheHits++; if(!llegoRed)cb({val:()=>v}); });
+  return _onValue(r,snap=>{ llegoRed=true; cacheSet(path,snap.val()); cb(snap); });
+}
+function leerCola(){ try{ return JSON.parse(localStorage.getItem("eq_cola")||"[]"); }catch(e){ return []; } }
+function guardarCola(c){ try{ localStorage.setItem("eq_cola",JSON.stringify(c.slice(-5000))); }catch(e){} }
+function encolar(op){ let c=leerCola(); if(op.t==="set")c=c.filter(o=>!(o.t==="set"&&o.path===op.path)); c.push(op); guardarCola(c); }
+function sacarDeCola(id){ guardarCola(leerCola().filter(o=>o.id!==id)); }
+function opId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function limpio(v){ if(Array.isArray(v))return v.map(limpio); if(v&&typeof v==="object"){ const o={}; for(const k in v){ if(v[k]===undefined)continue; o[k]=limpio(v[k]); } return o; } return v===undefined?null:v; }
+function set(path,val){
+  val=limpio(val); const r=R(path);
+  const op={id:opId(),t:"set",path:pathOf(r),val:val};
+  encolar(op);
+  try{ _set(r,val).then(()=>sacarDeCola(op.id)).catch(e=>{ const m=String(e&&(e.code||e.message)||e); if(!/network|offline|timeout|disconnect/i.test(m)){ sacarDeCola(op.id); toast("⚠️ No se pudo guardar: "+m.slice(0,80)); } }); }
+  catch(e){ sacarDeCola(op.id); }
+  pendientesBarra(); return Promise.resolve();
+}
+function remove(path){
+  const r=R(path); const op={id:opId(),t:"del",path:pathOf(r)};
+  encolar(op);
+  try{ _remove(r).then(()=>sacarDeCola(op.id)).catch(()=>{}); }catch(e){ sacarDeCola(op.id); }
+  pendientesBarra(); return Promise.resolve();
+}
+let colaReintentando=false;
+function reintentarCola(){
+  if(colaReintentando)return; const c=leerCola(); if(!c.length)return; colaReintentando=true; let rest=c.length;
+  const fin=()=>{ if(--rest===0){colaReintentando=false;pendientesBarra();} };
+  for(const op of c){ let p; try{ const r=ref(db,op.path); p=op.t==="del"?_remove(r):_set(r,op.val); }catch(e){ sacarDeCola(op.id); fin(); continue; }
+    p.then(()=>sacarDeCola(op.id)).catch(e=>{ const m=String(e&&(e.code||e.message)||e); if(!/network|offline|timeout|disconnect/i.test(m)){ const c2=leerCola(); const o=c2.find(x=>x.id===op.id); if(o){ o.fails=(o.fails||0)+1; if(o.fails>=5)sacarDeCola(op.id); else guardarCola(c2); } } }).finally(fin); }
+}
+setInterval(()=>{ try{ if(navigator.onLine&&leerCola().length)reintentarCola(); }catch(e){} },30000);
+window.addEventListener("online",()=>{ reintentarCola(); pendientesBarra(); });
+window.addEventListener("offline",()=>pendientesBarra());
+function pendientesBarra(){ if(state.loaded)render(); }
+setTimeout(()=>{
+  const r=document.getElementById("root");
+  if(r&&/Conectando/.test(r.textContent||"")){
+    if(_cacheHits>0){ state.loaded=true; render(); return; }
+    r.innerHTML='<div class="login-box" style="text-align:center"><div class="ico">📡</div><h1 style="letter-spacing:0">Sin señal</h1><p style="margin-top:.6rem;font-size:.95rem;color:#4a3820">Este dispositivo todavía no tiene guardados los datos para abrir sin internet.<br><br><strong>Qué hacer:</strong> conectá el teléfono o la tablet a internet un momento, tocá Reintentar y esperá a que aparezca "Conectado". Desde ahí la app va a abrir sin señal.</p><button class="bp big" style="margin-top:1rem" onclick="location.reload()">🔄 Reintentar</button></div>';
+  }
+},9000);
+
+const SEED=[{"rp":1,"sba":"0374","fechaNac":"2016-04-15","nombre":"ROSETA","pelaje":"ZAINO","genero":"H"},{"rp":2,"sba":"0375","fechaNac":"2003-06-22","nombre":"PERLA","pelaje":"TORDILLO","genero":"H","obs":"MUERTO","muerto":true},{"rp":3,"sba":"0376","fechaNac":"2007-10-06","nombre":"CALANDRIA","pelaje":"ZAINO","genero":"H","madre":"CHUECA","propMadre":"SOLSONA, GUSTAVO"},{"rp":4,"sba":"0377","fechaNac":"2004-07-15","nombre":"POLVADERA","pelaje":"PICAZO","genero":"H"},{"rp":5,"sba":"0378","fechaNac":"2010-05-06","nombre":"TORMENTA","pelaje":"TORDILLO","genero":"H"},{"rp":6,"sba":"0379","fechaNac":"2014-11-09","nombre":"LOBA","pelaje":"LOBUNO","genero":"H"},{"rp":7,"sba":"0380","fechaNac":"2012-12-15","nombre":"VELA","pelaje":"ALAZAN","genero":"H","madre":"PUESTERA","padre":"PLUMERO","propMadre":"SOLSONA, GUSTAVO","propPadre":"ZAPATA, JOSE"},{"rp":8,"sba":"Tob.175","fechaNac":"2013-02-06","nombre":"SALITRAL","pelaje":"TOBIANO","genero":"MC"},{"rp":9,"sba":"0381","fechaNac":"2013-10-03","nombre":"MECHA","pelaje":"ZAINO","genero":"H","madre":"ROSETA","madreRp":"1","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":10,"sba":"0382","fechaNac":"2013-12-05","nombre":"MUÑECA","pelaje":"ZAINO","genero":"H","madre":"CHUECA","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":11,"sba":"176","fechaNac":"2014-09-04","nombre":"GITANO","pelaje":"ZAINO","genero":"MC","madre":"GITANA","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":12,"sba":"0383","fechaNac":"2014-09-21","nombre":"PATA","pelaje":"ZAINO COLORADO","genero":"H","madre":"ROSETA","madreRp":"1","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":13,"sba":"0384","fechaNac":"2014-12-14","nombre":"FLAUTA","pelaje":"ZAINO","genero":"H","madre":"CHUECA","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":14,"sba":"177","fechaNac":"2015-03-15","nombre":"COTY","pelaje":"TORDILLO","genero":"MC","madre":"PALOMA","padre":"CHIRIPA","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR"},{"rp":15,"sba":"178","fechaNac":"2015-09-27","nombre":"MAPUCHE","pelaje":"ALAZAN","genero":"MC","madre":"MARIPOSA","padre":"CHIRIPA","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR"},{"rp":16,"sba":"0385","fechaNac":"2015-10-02","nombre":"YARARA","pelaje":"ALAZAN","genero":"H","madre":"MAL PEINADA","padre":"CHIRIPA","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR"},{"rp":17,"sba":"0386","fechaNac":"2015-10-04","nombre":"TAPERITA","pelaje":"ZAINO","genero":"H","madre":"QUE TE DIJE","padre":"CHIRIPA","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR"},{"rp":18,"sba":"0387","fechaNac":"2015-10-06","nombre":"MILONGA","pelaje":"ZAINO COLORADO","genero":"H","madre":"ROSETA","madreRp":"1","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":19,"sba":"0388","fechaNac":"2015-11-16","nombre":"CARA SUCIA","pelaje":"ROSILLO","genero":"H","madre":"PERLA","madreRp":"2","padre":"CHIRIPA","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR"},{"rp":20,"sba":"179","fechaNac":"2016-10-10","nombre":"GUANTE BLANCO","pelaje":"ALAZAN","genero":"MC","madre":"ROSETA","madreRp":"1","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":21,"sba":"180","fechaNac":"2016-11-15","nombre":"PETACO","pelaje":"ZAINO COLORADO","genero":"MC","madre":"PETACA","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":22,"sba":"0389","fechaNac":"2016-12-10","nombre":"ENCIMERA","pelaje":"GATEADO","genero":"H","madre":"MALETA","padre":"CHUECO","propMadre":"SOLSONA, GUSTAVO"},{"rp":23,"sba":"0390","fechaNac":"2017-03-26","nombre":"MEDIA VUELTA","pelaje":"BLANCO","genero":"H","madre":"GITANA","padre":"COMPINCHE","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":24,"sba":"0391","fechaNac":"2017-04-14","nombre":"BATARAZA","pelaje":"TORDILLO","genero":"H","madre":"POCA COSA","padre":"CHIRIPA","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR"},{"rp":25,"sba":"181","fechaNac":"2014-09-07","nombre":"MISTERIO","pelaje":"LOBUNO","genero":"MP","obs":"PADRILLO PROPIO","padrilloPropio":true},{"rp":26,"fechaNac":"2018-01-10","nombre":"TOMATE","genero":"MC","madre":"ROSETA","madreRp":"1","padre":"MONARCA","propMadre":"SOLSONA, GUSTAVO","propPadre":"RODRIGUEZ, FABIO"},{"rp":27,"fechaNac":"2018-01-20","nombre":"ZORRA","genero":"H","madre":"POCA COSA","padre":"MONARCA","propMadre":"SOLSONA, GUSTAVO","propPadre":"RODRIGUEZ, FABIO"},{"rp":28,"fechaNac":"2018-03-30","nombre":"CIGARRA","genero":"H","madre":"MALETA","madreRp":"5","padre":"MONARCA","propMadre":"SOLSONA, GUSTAVO","propPadre":"RODRIGUEZ, FABIO"},{"rp":29,"fechaNac":"2018-07-18","nombre":"MALA PATA","genero":"H","madre":"POLVADERA","madreRp":"4","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL"},{"rp":30,"fechaNac":"2018-07-20","pelaje":"ZAINO","genero":"H","madre":"TAPERA","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL","obs":"ENTREGADA A OMAR FERNANDEZ"},{"rp":31,"fechaNac":"2018-08-02","nombre":"MAL AMIGO","genero":"MC","madre":"MAL PEINADA","padre":"PATACON","propMadre":"SOLSONA, GUSTAVO","propPadre":"RAMOS, ARIEL","obs":"MUERTO","muerto":true},{"rp":32,"fechaNac":"2019-09-01","nombre":"CANARIO","pelaje":"GATEADO","genero":"MC","madre":"MARIPOSA","padre":"ALAZAN","propMadre":"SOLSONA, GUSTAVO","propPadre":"MILOVICH, DAMIAN","obs":"CHIPEADOS","chipeado":true},{"rp":33,"fechaNac":"2020-10-18","nombre":"CARRETA","pelaje":"TORDILLO","genero":"H","madre":"POCA COSA","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI","obs":"CHIPEADOS","chipeado":true},{"rp":34,"fechaNac":"2019-09-08","nombre":"CROTO","genero":"MC","madre":"TAPERA","padre":"ALAZAN","propMadre":"SOLSONA, GUSTAVO","propPadre":"MILOVICH, DAMIAN"},{"rp":35,"fechaNac":"2020-06-03","nombre":"ESCONDIDA","genero":"H","madre":"ALAZANA LEITE","padre":"PADRILLO","propMadre":"RODRIGUEZ, FABIO","propPadre":"MARINELLI, JOSE"},{"rp":36,"fechaNac":"2020-08-20","nombre":"ABROJO","pelaje":"ZAINO","genero":"MC","madre":"ROSETA","madreRp":"1","padre":"DON PEDRO","propMadre":"SOLSONA, GUSTAVO","propPadre":"RODRIGUEZ, FABIO"},{"rp":37,"fechaNac":"2020-08-27","nombre":"EL MOSQUITO","pelaje":"ALAZAN","genero":"MC","madre":"CALANDRIA","madreRp":"3","padre":"MATE","propMadre":"SOLSONA, GUSTAVO","propPadre":"LEITE, PEDRO","obs":"CHIPEADOS","chipeado":true},{"rp":38,"fechaNac":"2020-08-27","nombre":"GATA","genero":"H","madre":"PERLA","madreRp":"2","padre":"DON PEDRO","propMadre":"SOLSONA, GUSTAVO","propPadre":"RODRIGUEZ, FABIO"},{"rp":39,"fechaNac":"2020-09-15","genero":"MC","madre":"TORMENTA","madreRp":"5","padre":"MATE","propMadre":"SOLSONA, GUSTAVO","propPadre":"LEITE, PEDRO"},{"rp":40,"fechaNac":"2020-09-18","nombre":"CINZANO","genero":"MC","madre":"TORDILLA CHOELE","padre":"PADRILLO","propMadre":"RODRIGUEZ, FABIO","propPadre":"MARINELLI, JOSE"},{"rp":41,"fechaNac":"2020-09-24","nombre":"CARETA","genero":"H","madre":"ZAINA MARGARICH","padre":"PADRILLO","propMadre":"RODRIGUEZ, FABIO","propPadre":"MARINELLI, JOSE"},{"rp":42,"fechaNac":"2019-09-05","nombre":"GUADAÑA","pelaje":"ALAZAN","genero":"H","madre":"CONEJA","padre":"ALAZAN","propMadre":"SOLSONA, GUSTAVO","propPadre":"MILOVICH, DAMIAN","obs":"CHIPEADOS","chipeado":true},{"rp":43,"fechaNac":"2020-10-24","genero":"H","madre":"LA CHINA","padre":"TORDILLO EMBRUJADO","propMadre":"ROVEDA, JORGE","propPadre":"ROVEDA, JORGE","obs":"MUERTO","muerto":true},{"rp":44,"fechaNac":"2020-11-05","nombre":"CARRERO","pelaje":"TOBIANO","genero":"MC","madre":"CONEJA","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":45,"fechaNac":"2020-11-09","nombre":"TURCO","pelaje":"LOBUNO","genero":"MC","madre":"POLVADERA","madreRp":"4","padre":"MISTERIO","padreRp":"25","propMadre":"SOLSONA, GUSTAVO","propPadre":"SOLSONA, GUSTAVO"},{"rp":46,"fechaNac":"2021-06-15","pelaje":"PAMPA COLORADA","genero":"H","madre":"COLORADA","padre":"TORDILLO","propMadre":"SOLSONA, GUSTAVO","propPadre":"MANASSE, LUCAS","obs":"MANSO","manso":true},{"rp":47,"fechaNac":"2021-08-28","nombre":"URRACA","pelaje":"DORADILLA PATA BLANCA","genero":"H","madre":"CALANDRIA","madreRp":"3","padre":"MISTERIO","padreRp":"25","propMadre":"SOLSONA, GUSTAVO","propPadre":"SOLSONA, GUSTAVO"},{"rp":48,"fechaNac":"2021-09-21","nombre":"POLACO","pelaje":"GATEADO 4 PATAS BLANCAS","genero":"MC","madre":"TORMENTA","madreRp":"5","padre":"MISTERIO","padreRp":"25","propMadre":"SOLSONA, GUSTAVO","propPadre":"SOLSONA, GUSTAVO"},{"rp":49,"fechaNac":"2021-09-22","nombre":"GORRION","pelaje":"ALAZAN","genero":"MC","madre":"ROSETA","madreRp":"1","padre":"MISTERIO","padreRp":"25","propMadre":"SOLSONA, GUSTAVO","propPadre":"SOLSONA, GUSTAVO"},{"rp":50,"fechaNac":"2021-10-14","nombre":"VENTARRON","pelaje":"TORDILLO","genero":"MC","madre":"POCA COSA","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":51,"fechaNac":"2021-10-22","nombre":"LLOVIZNA","pelaje":"PICAZO","genero":"H","madre":"POLVADERA","madreRp":"4","padre":"MISTERIO","padreRp":"25","propMadre":"SOLSONA, GUSTAVO","propPadre":"SOLSONA, GUSTAVO"},{"rp":52,"fechaNac":"2022-01-06","nombre":"INDIA","pelaje":"TOBIANA","genero":"H","madre":"LA CHINA","padre":"MANDINGA","propMadre":"ROVEDA, JORGE","propPadre":"ELISEGUI"},{"rp":53,"fechaNac":"2022-09-28","pelaje":"ZAINA PICAZA","genero":"H","madre":"ROSETA","madreRp":"1","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":54,"fechaNac":"2022-09-29","pelaje":"TOBIANO TORDILLO","genero":"MC","madre":"TORMENTA","madreRp":"5","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":55,"fechaNac":"2022-10-01","pelaje":"TOBIANO","genero":"MC","madre":"POLVADERA","madreRp":"4","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":56,"fechaNac":"2022-10-06","pelaje":"COLORADA PICAZA","genero":"H","madre":"CALANDRIA","madreRp":"3","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":57,"fechaNac":"2022-11-04","pelaje":"TOBIANA ALAZAN","genero":"H","madre":"ROSILLA ROSITA","padre":"MANDINGA","propMadre":"ELISEGUI","propPadre":"ELISEGUI"},{"rp":58,"fechaNac":"2022-11-04","pelaje":"TOBIANO ZAINO","genero":"MC","madre":"TUERTA","padre":"MANDINGA","propMadre":"ARIEL RAMOS","propPadre":"ELISEGUI","obs":"MUERTO","muerto":true},{"rp":59,"fechaNac":"2022-11-07","pelaje":"TOBIANO ZAINO","genero":"MC","madre":"TORDILLA","padre":"MANDINGA","propMadre":"ELISEGUI","propPadre":"ELISEGUI"},{"rp":60,"fechaNac":"2022-11-19","pelaje":"DORADILLA CABOS BLANCOS","genero":"H","madre":"GATEADA","padre":"MANDINGA","propMadre":"ELISEGUI","propPadre":"ELISEGUI"},{"rp":61,"fechaNac":"2022-12-17","pelaje":"OVERO DORADILLO","genero":"MC","madre":"LA FONSECA","padre":"OVERO FONSECA","propPadre":"COMPRADO A JORGE","obs":"MANSO","manso":true},{"rp":62,"fechaNac":"2023-09-26","pelaje":"OVERO ROSADO","genero":"MC","madre":"LA LOBA","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":63,"fechaNac":"2023-11-20","pelaje":"LOBUNO","genero":"H","madre":"COLORADA MORENA","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO"},{"rp":64,"fechaNac":"2023-11-25","pelaje":"LOBUNO","genero":"H","madre":"TORDILLA","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO"},{"rp":65,"fechaNac":"2023-11-27","pelaje":"GATEADO","genero":"MC","madre":"GATEADA TISNADA","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO","obs":"ENTREGADA A OMAR FERNANDEZ"},{"rp":66,"fechaNac":"2023-11-30","pelaje":"GATEADO","genero":"MC","madre":"GATEADA","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO"},{"rp":67,"fechaNac":"2023-11-30","pelaje":"ZAINO CABOS BLANCOS","genero":"MC","madre":"CALANDRIA","madreRp":"3","padre":"MANDINGA","propMadre":"SOLSONA, GUSTAVO","propPadre":"ELISEGUI"},{"rp":68,"fechaNac":"2023-12-02","pelaje":"ROSILLO","genero":"H","madre":"ROSILLA ROSITA","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO","obs":"ENTREGADA A OMAR FERNANDEZ"},{"rp":69,"fechaNac":"2024-02-17","pelaje":"GATEADO PAMPA","genero":"MC","madre":"ZAINA ELISEGUI","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO","obs":"MUERTO","muerto":true},{"rp":70,"fechaNac":"2024-10-14","pelaje":"GATEADA","genero":"MC","madre":"MUÑECA","padre":"PROYECTIL","propMadre":"SOLSONA, GUSTAVO","propPadre":"PIRES"},{"rp":71,"fechaNac":"2024-08-30","pelaje":"TOBIANO-ALAZAN","genero":"H","madre":"COLORADA MORENA","padre":"MANDINGA","propMadre":"ELISEGUI","propPadre":"ELISEGUI"},{"rp":72,"fechaNac":"2024-11-03","pelaje":"OVERO ROSADO","genero":"MC","madre":"LOBA","padre":"MISTERIO","propMadre":"SOLSONA, GUSTAVO","propPadre":"SOLSONA, GUSTAVO"},{"rp":73,"fechaNac":"2025-01-25","pelaje":"COLORADA PICAZA","genero":"H","madre":"ZAINA ELISEGUI","padre":"MANDINGA","propMadre":"ELISEGUI","propPadre":"ELISEGUI"},{"rp":74,"fechaNac":"2025-01-31","pelaje":"COLORADA PICAZA","genero":"H","madre":"POLVADERA","padre":"ESPARTO","propMadre":"SOLSONA, GUSTAVO","propPadre":"BORGES"},{"rp":75,"fechaNac":"2025-11-11","pelaje":"ALAZAN","genero":"H","madre":"LA TITA","padre":"PADRILLO","propMadre":"SOLSONA, GUSTAVO","propPadre":"FANZI, JAVIER"},{"rp":76,"fechaNac":"2025-11-17","pelaje":"COLORADA","genero":"H","madre":"GATEADA CHICA (ANDAR)","padre":"TORDILLO","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR","obs":"MANSO","manso":true},{"rp":77,"fechaNac":"2026-01-20","pelaje":"GATEADA","genero":"H","madre":"GATEADA FLACA (ANDAR)","padre":"TORDILLO","propMadre":"SOLSONA, GUSTAVO","propPadre":"FERNANDEZ, OMAR","obs":"MANSO","manso":true},{"rp":78,"fechaNac":"2026-09-16","pelaje":"ZAINO C/LUCERO EN FRENTE","genero":"MC","madre":"CALANDRIA","madreRp":"3","padre":"LOBUNO","propMadre":"SOLSONA, GUSTAVO","propPadre":"LOPEZ, MAXI"},{"rp":79,"fechaNac":"2026-09-23","pelaje":"ALAZAN","genero":"H","madre":"COLORADA MORENA","padre":"LOBUNO","propMadre":"ELISEGUI","propPadre":"LOPEZ, MAXI"},{"rp":80,"fechaNac":"2026-09-26","pelaje":"PICAZO C/LUCERO EN FRENTE","genero":"H","madre":"MUÑECA","padre":"PROYECTIL","propMadre":"SOLSONA, GUSTAVO","propPadre":"PIRES, DANIEL"},{"rp":81,"fechaNac":"2026-10-19","pelaje":"GATEADO","genero":"MC","madre":"LOBA","padre":"RUBIO","propMadre":"SOLSONA, GUSTAVO","propPadre":"LOPEZ, MAXI"},{"rp":82,"fechaNac":"2026-10-22","pelaje":"GATEADO","madre":"COLORADA RIOS","padre":"PROYECTIL","propMadre":"RIOS, DANIEL","propPadre":"PIRES, DANIEL"},{"rp":83,"fechaNac":"2026-10-24","pelaje":"LOBUNO","madre":"ZAINA ELISEGUI","padre":"MISTERIO","propMadre":"ELISEGUI","propPadre":"SOLSONA, GUSTAVO"}];
+// ══════════ CONSTANTES ══════════
+const GENEROS={H:"Hembra",MP:"Macho padrillo",MC:"Macho castrado"};
+const RUEDAS_BASE=["Basto","Grupa","Crina","Cuero tendido"];
+const PELAJES_BASE=["ALAZAN","BAYO","BLANCO","CEBRUNO","COLORADO","DORADILLO","GATEADO","LOBUNO","MALACARA","MORO","OVERO","PAMPA","PICAZO","ROSILLO","TOBIANO","TORDILLO","ZAINO","ZAINO COLORADO"];
+const PERMISOS=[ // permisos que el administrador puede dar a cada operario
+  ["verEquinos","Ver la lista de equinos y sus fichas"],
+  ["cargarEquinos","Cargar y editar equinos"],
+  ["verEventos","Ver eventos y participaciones"],
+  ["cargarEventos","Cargar participaciones en eventos"],
+  ["editarEventos","Editar / borrar participaciones de otros"],
+  ["verImportes","Ver los importes cobrados"],
+  ["verResumen","Ver el resumen de ingresos"],
+];
+const PERM_DEFAULT={verEquinos:true,cargarEquinos:false,verEventos:true,cargarEventos:true,editarEventos:false,verImportes:false,verResumen:false};
+
+// ══════════ ESTADO ══════════
+const state={
+  usuarios:{}, caballos:{}, parts:{}, config:{},
+  loaded:false, usuariosLoaded:false, caballosLoaded:false, partsLoaded:false,
+  sesion:localStorage.getItem("eq_sesion")||null,
+  loginModo:"operario", loginErr:"", setupErr:"",
+  tab:"equinos", fichaId:null,
+  f:{q:"",genero:"",pelaje:"",estado:"vivos",sra:"",anio:"",prop:"",orden:"rp"},
+  fe:{q:"",anio:"",rueda:"",evento:"",cab:""},
+  fr:{anio:"",vista:"evento"},
+  editCab:null, editPart:null, formKey:null, partCabQ:"", partCabId:null,
+  nuevoUserRol:null, editPermUser:null, modal:null,
+};
+window.state=state;
+
+// ══════════ UTILIDADES ══════════
+const h=(s)=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);
+const hoy=()=>{ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fmtF=(s)=>{ if(!s)return ""; const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m?m[3]+"/"+m[2]+"/"+m[1]:s; };
+const anioDe=(s)=>s&&/^\d{4}/.test(s)?s.slice(0,4):"";
+const fmt$=(n)=>{ if(n===""||n==null||isNaN(n))return ""; return "$ "+Number(n).toLocaleString("es-AR",{maximumFractionDigits:0}); };
+const normTxt=(s)=>String(s||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
+const num=(v)=>{ if(v===""||v==null)return ""; const n=Number(String(v).replace(/\./g,"").replace(",",".")); return isNaN(n)?"":n; };
+function edad(fn){ if(!fn)return ""; const d=new Date(fn+"T00:00:00"); if(isNaN(d))return ""; const n=new Date(); let a=n.getFullYear()-d.getFullYear(); const m=n.getMonth()-d.getMonth(); if(m<0||(m===0&&n.getDate()<d.getDate()))a--; if(a<0)return ""; if(a===0){ const meses=Math.max(0,(n.getFullYear()-d.getFullYear())*12+n.getMonth()-d.getMonth()); return meses+" mes"+(meses===1?"":"es"); } return a+" año"+(a===1?"":"s"); }
+const vacio=(v)=>v===""||v==null?'<span class="blank">—</span>':h(v);
+let _toastT=null; window.toast=function(msg){ let t=document.getElementById("toastEl"); if(!t){ t=document.createElement("div"); t.id="toastEl"; t.className="toast"; document.body.appendChild(t); } t.textContent=msg; t.style.display="block"; clearTimeout(_toastT); _toastT=setTimeout(()=>{t.style.display="none";},3200); };
+const nombreCab=(c)=>c?((c.nombre||"(sin nombre)")+(c.rp!=null&&c.rp!==""?" · RP "+c.rp:"")):"";
+const lista=()=>Object.values(state.caballos).filter(Boolean);
+const partsDe=(id)=>Object.values(state.parts).filter(p=>p&&p.caballoId===id).sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||""));
+function pelajes(){ const s=new Set(PELAJES_BASE); lista().forEach(c=>{ if(c.pelaje)s.add(normTxt(c.pelaje)); }); (state.config.pelajes||[]).forEach(p=>s.add(p)); return [...s].sort(); }
+function ruedas(){ const s=new Set(RUEDAS_BASE); Object.values(state.parts).forEach(p=>{ if(p&&p.rueda)s.add(p.rueda); }); (state.config.ruedas||[]).forEach(r=>s.add(r)); return [...s]; }
+function eventosNombres(){ const s=new Set(); Object.values(state.parts).forEach(p=>{ if(p&&p.evento)s.add(p.evento); }); return [...s].sort(); }
+function propietarios(){ const s=new Set(); lista().forEach(c=>["propietario","propMadre","propPadre"].forEach(k=>{ if(c[k])s.add(c[k]); })); return [...s].sort(); }
+function buscarPorNombre(nombre,rp){ // busca un caballo del plantel por nombre (o RP) para armar el árbol
+  if(rp!==""&&rp!=null){ const r=lista().find(c=>String(c.rp)===String(rp)); if(r)return r; }
+  const n=normTxt(nombre); if(!n)return null;
+  return lista().find(c=>normTxt(c.nombre)===n)||lista().find(c=>normTxt(c.nombre)==="LA "+n||normTxt(c.nombre)==="EL "+n||"LA "+normTxt(c.nombre)===n||"EL "+normTxt(c.nombre)===n)||null;
+}
+function hijosDe(c){ const n=normTxt(c.nombre); return lista().filter(x=>x.id!==c.id&&((n&&(normTxt(x.madre)===n||normTxt(x.padre)===n))||(c.rp!=null&&c.rp!==""&&(String(x.madreRp)===String(c.rp)||String(x.padreRp)===String(c.rp))))).sort((a,b)=>(a.fechaNac||"").localeCompare(b.fechaNac||"")); }
+function proximoRP(){ let m=0; lista().forEach(c=>{ const n=Number(c.rp); if(!isNaN(n)&&n>m)m=n; }); return m+1; }
+
+// ══════════ USUARIOS / PERMISOS ══════════
+function usuarioActual(){ return state.sesion?state.usuarios[state.sesion]||null:null; }
+function esAdmin(){ const u=usuarioActual(); return !!u&&u.rol==="admin"&&!u.baja; }
+function puede(p){ const u=usuarioActual(); if(!u||u.baja)return false; if(u.rol==="admin")return true; const perm=Object.assign({},PERM_DEFAULT,u.permisos||{}); return !!perm[p]; }
+function adminsActivos(){ return Object.values(state.usuarios).filter(u=>u&&u.rol==="admin"&&!u.baja); }
+function tabsVisibles(){
+  const t=[];
+  if(puede("verEquinos"))t.push(["equinos","🐎 Equinos"]);
+  if(puede("verEquinos"))t.push(["ficha","📋 Ficha"]);
+  if(puede("verEventos")||puede("cargarEventos"))t.push(["eventos","🏇 Eventos"]);
+  if(puede("verResumen"))t.push(["resumen","📊 Resumen"]);
+  if(esAdmin())t.push(["usuarios","👥 Usuarios"]);
+  if(esAdmin())t.push(["param","⚙️ Parámetros"]);
+  return t;
+}
+
+// ══════════ LISTENERS DE FIREBASE (tiempo real) ══════════
+function chequearCarga(){ if(state.usuariosLoaded&&state.caballosLoaded&&state.partsLoaded){ state.loaded=true; render(); } }
+onValue(R("usuarios"),s=>{ state.usuarios=s.val()||{}; state.usuariosLoaded=true;
+  const u=usuarioActual(); if(state.sesion&&(!u||u.baja)){ const msg=u?"Tu acceso fue dado de baja. Hablá con el administrador.":(Object.keys(state.usuarios).length?"Tu usuario fue eliminado. Hablá con el administrador.":""); if(msg){ state.sesion=null; localStorage.removeItem("eq_sesion"); state.loginErr=msg; } }
+  chequearCarga(); if(state.loaded)render(); });
+onValue(R("caballos"),s=>{ state.caballos=s.val()||{}; state.caballosLoaded=true; chequearCarga(); if(state.loaded)render(); });
+onValue(R("participaciones"),s=>{ state.parts=s.val()||{}; state.partsLoaded=true; chequearCarga(); if(state.loaded)render(); });
+onValue(R("config"),s=>{ state.config=s.val()||{}; if(state.loaded)render(); });
+let conectado=false; _onValue(ref(db,".info/connected"),s=>{ conectado=!!s.val(); if(conectado)reintentarCola(); if(state.loaded)render(); });
+
+// ══════════ LOGIN / SETUP ══════════
+window.modoLogin=(m)=>{ state.loginModo=m; state.loginErr=""; render(); setTimeout(()=>{const e=document.getElementById("lg_nombre");if(e)e.focus();},30); };
+window.crearPrimerAdmin=async function(){
+  const nombre=(document.getElementById("su_nombre").value||"").trim(); const c1=document.getElementById("su_clave").value||""; const c2=document.getElementById("su_clave2").value||"";
+  if(!nombre){state.setupErr="Escribí el nombre del administrador.";render();return;}
+  if(c1.length<4){state.setupErr="La clave tiene que tener al menos 4 caracteres.";render();return;}
+  if(c1!==c2){state.setupErr="Las claves no coinciden.";render();return;}
+  const id=uid(); state.usuarios[id]={id,nombre,rol:"admin",clave:c1,baja:false};
+  await set("usuarios/"+id,state.usuarios[id]);
+  state.sesion=id; localStorage.setItem("eq_sesion",id); state.setupErr="";
+  if(!lista().length)await cargarPlanillaInicial(true);
+  toast("✅ Administrador creado. ¡Bienvenido, "+nombre+"!"); render();
+};
+window.login=function(){
+  const nombre=(document.getElementById("lg_nombre").value||"").trim(); const clave=(document.getElementById("lg_clave")||{}).value||"";
+  const u=Object.values(state.usuarios).find(x=>x&&normTxt(x.nombre)===normTxt(nombre));
+  if(!u){state.loginErr="No encontramos ese nombre. Pedile a un administrador que te dé de alta.";render();return;}
+  if(u.baja){state.loginErr="Tu acceso fue dado de baja. Hablá con un administrador.";render();return;}
+  if(state.loginModo==="admin"){ if(u.rol!=="admin"){state.loginErr="Ese nombre no es de administrador. Entrá por la pestaña Operario.";render();return;} if((u.clave||"")!==clave){state.loginErr="Clave incorrecta.";render();return;} }
+  else if(u.rol==="admin"){state.loginErr="Sos administrador: entrá por la pestaña Administrador con tu clave.";render();return;}
+  state.sesion=u.id; localStorage.setItem("eq_sesion",u.id); state.loginErr=""; const t=tabsVisibles(); state.tab=t.length?t[0][0]:"equinos"; render();
+};
+window.logout=function(){ state.sesion=null; localStorage.removeItem("eq_sesion"); state.tab="equinos"; render(); };
+window.irATab=function(t){ state.tab=t; state.modal=null; render(); window.scrollTo({top:0}); };
+
+// ══════════ PLANILLA INICIAL (datos SRA del Excel) ══════════
+async function cargarPlanillaInicial(silencioso){
+  const u=usuarioActual(); const existentes=new Set(lista().map(c=>String(c.rp))); let n=0;
+  for(const s of SEED){ if(existentes.has(String(s.rp)))continue; const id=uid(); const c=Object.assign({id,sba:"",nombre:"",fechaNac:"",pelaje:"",genero:"",madre:"",madreRp:"",padre:"",padreRp:"",propMadre:"",propPadre:"",propietario:"",obs:"",muerto:false,manso:false,cedido:false,padrilloPropio:false,chipeado:false},s,{creado:new Date().toISOString(),creadoPor:u?u.nombre:"",origen:"planilla SRA"}); state.caballos[id]=c; await set("caballos/"+id,c); n++; await new Promise(r=>setTimeout(r,5)); }
+  if(!silencioso)toast(n?"✅ Se cargaron "+n+" equinos de la planilla SRA":"Todos los equinos de la planilla ya estaban cargados");
+  render();
+}
+window.cargarPlanillaInicial=()=>cargarPlanillaInicial(false);
+
+// ══════════ RENDER ══════════
+function snapshotForm(){ const o={}; document.querySelectorAll("[id^='f_'],[id^='p_'],[id^='nu_'],[id^='lg_'],[id^='su_']").forEach(e=>{ o[e.id]=e.type==="checkbox"?e.checked:e.value; }); return o; }
+function restoreForm(o){ for(const id in o){ const e=document.getElementById(id); if(!e)continue; if(e.type==="checkbox")e.checked=o[id]; else if(e.value!==o[id])e.value=o[id]; } }
+function render(){
+  const root=document.getElementById("root"); if(!root)return;
+  const ae=document.activeElement; const aeId=ae&&ae.id; const sel=ae&&typeof ae.selectionStart==="number"?ae.selectionStart:null;
+  const snap=snapshotForm(); const key=state.formKey;
+  if(!state.loaded){ root.innerHTML='<div class="loading"><div class="spinner"></div><span>Conectando con la base de datos...</span></div>'; return; }
+  let html="";
+  const hayAdmin=Object.values(state.usuarios).some(u=>u&&u.rol==="admin");
+  if(!hayAdmin)html=renderSetup();
+  else if(!usuarioActual())html=renderLogin();
+  else html=renderApp();
+  root.innerHTML=html;
+  if(key&&state.formKey===key)restoreForm(snap);
+  if(aeId){ const e=document.getElementById(aeId); if(e&&e!==document.activeElement){ try{ e.focus({preventScroll:true}); if(sel!=null&&typeof e.setSelectionRange==="function"&&/text|search/.test(e.type))e.setSelectionRange(sel,sel); }catch(x){} } }
+  if(state.modal)document.body.style.overflow="hidden"; else document.body.style.overflow="";
+}
+window.render=render;
+window.rr=function(){ render(); }; // re-render manteniendo foco
+
+function renderSetup(){
+  return `<div class="login-box"><div class="ico">🐎</div><h1>EQUINOS</h1><p class="sub">Configuración inicial</p>
+  <p class="hint" style="text-align:center">Todavía no hay administradores. Creá el administrador principal para empezar. Se van a cargar automáticamente los ${SEED.length} equinos de la planilla SRA.</p>
+  ${state.setupErr?`<div class="err">${h(state.setupErr)}</div>`:""}
+  <label>Nombre del administrador<input id="su_nombre" placeholder="Ej: Gustavo" autocomplete="off"/></label>
+  <label>Clave<input id="su_clave" type="password" placeholder="Mínimo 4 caracteres" autocomplete="new-password"/></label>
+  <label>Repetir clave<input id="su_clave2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')crearPrimerAdmin()"/></label>
+  <button class="bp big" style="width:100%;margin-top:.8rem" onclick="crearPrimerAdmin()">Crear administrador y entrar</button></div>`;
+}
+function renderLogin(){
+  const adm=state.loginModo==="admin";
+  return `<div class="login-box"><div class="ico">🐎</div><h1>EQUINOS</h1><p class="sub">Criador SRA · Jineteadas ACCDG</p>
+  <div class="segm"><button class="${adm?"":"on"}" onclick="modoLogin('operario')">Operario</button><button class="${adm?"on":""}" onclick="modoLogin('admin')">Administrador</button></div>
+  ${state.loginErr?`<div class="err">${h(state.loginErr)}</div>`:""}
+  <label>Tu nombre<input id="lg_nombre" placeholder="Como te dio de alta el administrador" autocomplete="off" onkeydown="if(event.key==='Enter')${adm?"document.getElementById('lg_clave').focus()":"login()"}"/></label>
+  ${adm?`<label>Clave<input id="lg_clave" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"/></label>`:""}
+  <button class="bp big" style="width:100%;margin-top:.8rem" onclick="login()">Entrar</button>
+  <p class="hint" style="text-align:center;margin-top:.8rem">${adm?"Los administradores entran con nombre y clave.":"Los operarios entran solo con su nombre. Si no tenés usuario, pedile el alta a un administrador."}</p>
+  <p class="km" style="text-align:center">v${window.APP_VERSION}</p></div>`;
+}
+function renderApp(){
+  const u=usuarioActual(); const tabs=tabsVisibles(); if(!tabs.some(t=>t[0]===state.tab))state.tab=tabs.length?tabs[0][0]:"equinos";
+  const cola=leerCola().length; const online=navigator.onLine!==false;
+  let body="";
+  switch(state.tab){ case "equinos":body=renderEquinos();break; case "ficha":body=renderFicha();break; case "eventos":body=renderEventos();break; case "resumen":body=renderResumen();break; case "usuarios":body=renderUsuarios();break; case "param":body=renderParam();break; }
+  return `<header><img src="icon-192.png" alt="EQUINOS"/><div class="htitulo"><h1>EQUINOS</h1><p>Criador 46 · Caballo de Destreza Gaucha · SRA / ACCDG</p></div>
+  <div class="hbtns"><span style="font-size:.85rem;color:#f8ecd2">👤 <strong>${h(u.nombre)}</strong> <span class="tag ${esAdmin()?"sra":"chip"}">${esAdmin()?"ADMIN":"OPERARIO"}</span></span><button class="hbtn" onclick="logout()">Salir</button></div></header>
+  <div class="sync-bar"><span class="sync-dot ${online&&conectado?"":"offline"}"></span><span>${online&&conectado?"Conectado · los cambios se comparten al instante":online?"Conectando…":"Sin señal · se puede seguir cargando"}</span>${cola?`<span class="pend">⏳ ${cola} cambio(s) guardados en este dispositivo, se suben solos cuando haya internet</span>`:""}<span style="margin-left:auto" class="km">${lista().length} equinos · ${Object.keys(state.parts).length} participaciones</span></div>
+  <nav>${tabs.map(t=>`<button class="${state.tab===t[0]?"active":""}" onclick="irATab('${t[0]}')">${t[1]}</button>`).join("")}</nav>
+  <main>${body}</main>${state.modal?renderModal():""}`;
+}
+
+// ── EQUINOS: lista + alta/edición ──
+function filtrarCaballos(){
+  const f=state.f; const q=normTxt(f.q);
+  let L=lista().filter(c=>{
+    if(f.estado==="vivos"&&c.muerto)return false; if(f.estado==="muertos"&&!c.muerto)return false; if(f.estado==="mansos"&&!c.manso)return false; if(f.estado==="chipeados"&&!c.chipeado)return false; if(f.estado==="cedidos"&&!c.cedido)return false; if(f.estado==="padrillos"&&!(c.padrilloPropio||c.genero==="MP"))return false;
+    if(f.genero&&c.genero!==f.genero)return false; if(f.pelaje&&normTxt(c.pelaje)!==f.pelaje)return false;
+    if(f.sra==="si"&&!c.sba)return false; if(f.sra==="no"&&c.sba)return false; if(f.anio&&anioDe(c.fechaNac)!==f.anio)return false;
+    if(f.prop&&![c.propietario,c.propMadre,c.propPadre].includes(f.prop))return false;
+    if(q){ const txt=normTxt([c.nombre,c.rp,c.sba,c.pelaje,c.madre,c.padre,c.propietario,c.propMadre,c.propPadre,c.obs].join(" ")); if(!q.split(" ").every(w=>txt.includes(w)))return false; }
+    return true; });
+  const o=f.orden; L.sort((a,b)=>{ if(o==="rp")return (Number(a.rp)||0)-(Number(b.rp)||0); if(o==="nombre")return (a.nombre||"zzz").localeCompare(b.nombre||"zzz"); if(o==="fecha")return (b.fechaNac||"").localeCompare(a.fechaNac||""); return 0; });
+  return L;
+}
+window.setF=function(k,v){ state.f[k]=v; render(); };
+function tagsDe(c){ let t=""; if(c.genero)t+=`<span class="tag ${c.genero.toLowerCase()}">${c.genero}</span>`; if(c.muerto)t+=`<span class="tag muerto">MUERTO</span>`; if(c.manso)t+=`<span class="tag manso">MANSO</span>`; if(c.cedido)t+=`<span class="tag cedido">CEDIDO</span>`; if(c.padrilloPropio)t+=`<span class="tag padrillo">PADRILLO PROPIO</span>`; if(c.chipeado)t+=`<span class="tag chip">CHIPEADO</span>`; return t; }
+function renderEquinos(){
+  const L=filtrarCaballos(); const f=state.f; const anios=[...new Set(lista().map(c=>anioDe(c.fechaNac)).filter(Boolean))].sort().reverse();
+  const sel=(v,o)=>v===o?"selected":"";
+  return `${state.editCab?renderFormCab():""}
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">🐎 Equinos <span class="km">(${L.length} de ${lista().length})</span></h2><div class="br" style="margin:0">${puede("cargarEquinos")&&!state.editCab?`<button class="bp v" onclick="nuevoCab()">➕ Nuevo equino</button>`:""}${esAdmin()?`<button class="bs" onclick="exportarExcel()">📥 Excel</button>`:""}</div></div>
+  <div class="filtros">
+    <input id="f_q" type="search" placeholder="🔍 Buscar: nombre, RP, SBA, padre, madre…" value="${h(f.q)}" oninput="setF('q',this.value)"/>
+    <select onchange="setF('estado',this.value)"><option value="" ${sel(f.estado,"")}>Todos</option><option value="vivos" ${sel(f.estado,"vivos")}>Vivos</option><option value="muertos" ${sel(f.estado,"muertos")}>Muertos</option><option value="mansos" ${sel(f.estado,"mansos")}>Mansos</option><option value="chipeados" ${sel(f.estado,"chipeados")}>Chipeados</option><option value="cedidos" ${sel(f.estado,"cedidos")}>Cedidos</option><option value="padrillos" ${sel(f.estado,"padrillos")}>Padrillos</option></select>
+    <select onchange="setF('genero',this.value)"><option value="">Género: todos</option>${Object.keys(GENEROS).map(g=>`<option value="${g}" ${sel(f.genero,g)}>${GENEROS[g]} (${g})</option>`).join("")}</select>
+    <select onchange="setF('pelaje',this.value)"><option value="">Pelaje: todos</option>${pelajes().map(p=>`<option value="${h(p)}" ${sel(f.pelaje,p)}>${h(p)}</option>`).join("")}</select>
+    <select onchange="setF('sra',this.value)"><option value="">SRA: todos</option><option value="si" ${sel(f.sra,"si")}>Con SBA (registrado en SRA)</option><option value="no" ${sel(f.sra,"no")}>Sin SBA (falta registrar)</option></select>
+    <select onchange="setF('anio',this.value)"><option value="">Año nac.: todos</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select>
+    <select onchange="setF('prop',this.value)"><option value="">Propietario: todos</option>${propietarios().map(p=>`<option value="${h(p)}" ${sel(f.prop,p)}>${h(p)}</option>`).join("")}</select>
+    <select onchange="setF('orden',this.value)"><option value="rp" ${sel(f.orden,"rp")}>Orden: RP</option><option value="nombre" ${sel(f.orden,"nombre")}>Orden: nombre</option><option value="fecha" ${sel(f.orden,"fecha")}>Orden: más nuevos</option></select>
+  </div>
+  ${L.length?`<div class="tw"><table><thead><tr><th>RP</th><th>SBA</th><th>Nombre</th><th>Nac.</th><th>Edad</th><th>Pelaje</th><th>Madre</th><th>Padre</th><th>Estado</th><th>Eventos</th></tr></thead><tbody>
+  ${L.map(c=>`<tr class="cl" onclick="verFicha('${c.id}')"><td><strong>${h(c.rp)}</strong></td><td>${c.sba?`<span class="tag sra">${h(c.sba)}</span>`:`<span class="tag nosra">sin SBA</span>`}</td><td><strong>${c.nombre?h(c.nombre):'<span class="blank">sin nombre</span>'}</strong></td><td style="white-space:nowrap">${fmtF(c.fechaNac)}</td><td>${h(edad(c.fechaNac))}</td><td>${h(c.pelaje)}</td><td>${h(c.madre)}</td><td>${h(c.padre)}</td><td>${tagsDe(c)}</td><td>${partsDe(c.id).length||""}</td></tr>`).join("")}
+  </tbody></table></div>`:`<div class="empty">No hay equinos que coincidan con los filtros.</div>`}</div>`;
+}
+window.nuevoCab=function(){ state.editCab={id:null,rp:proximoRP(),sba:"",nombre:"",fechaNac:"",pelaje:"",genero:"",madre:"",madreRp:"",padre:"",padreRp:"",propMadre:"",propPadre:"",propietario:"",obs:"",muerto:false,manso:false,cedido:false,padrilloPropio:false,chipeado:false}; state.formKey="cab:new"; render(); setTimeout(()=>{const e=document.getElementById("formCab");if(e)e.scrollIntoView({behavior:"smooth"});const n=document.getElementById("f_nombre");if(n)n.focus();},40); };
+window.editarCab=function(id){ const c=state.caballos[id]; if(!c)return; state.editCab=Object.assign({},c); state.formKey="cab:"+id; state.tab="equinos"; render(); setTimeout(()=>{const e=document.getElementById("formCab");if(e)e.scrollIntoView({behavior:"smooth"});},40); };
+window.cancelarCab=function(){ state.editCab=null; state.formKey=null; render(); };
+function renderFormCab(){
+  const c=state.editCab; const nuevo=!c.id; const madres=lista().filter(x=>x.genero==="H"&&x.nombre); const padres=lista().filter(x=>x.genero!=="H"&&x.nombre);
+  return `<div class="card" id="formCab" style="border:2px solid #b8762a"><h2>${nuevo?"➕ Nuevo equino":"✏️ Editar: "+h(nombreCab(c))}</h2>
+  <p class="hint">Completá lo que tengas. Lo que no sepas, dejalo en blanco: se puede completar después.</p>
+  <div class="fg">
+    <label>RP (n° de criador) *<input id="f_rp" type="number" inputmode="numeric" value="${h(c.rp)}"/></label>
+    <label>SBA (n° registro SRA)<input id="f_sba" value="${h(c.sba)}" placeholder="Vacío si aún no está en SRA" autocomplete="off"/></label>
+    <label>Nombre<input id="f_nombre" value="${h(c.nombre)}" placeholder="Nombre / cría" autocomplete="off" style="text-transform:uppercase"/></label>
+    <label>Fecha de nacimiento<input id="f_fechaNac" type="date" value="${h(c.fechaNac)}"/></label>
+    <label>Pelaje<input id="f_pelaje" list="dl_pelajes" value="${h(c.pelaje)}" autocomplete="off" style="text-transform:uppercase"/><datalist id="dl_pelajes">${pelajes().map(p=>`<option value="${h(p)}">`).join("")}</datalist></label>
+    <label>Género<select id="f_genero"><option value="">(sin dato)</option>${Object.keys(GENEROS).map(g=>`<option value="${g}" ${c.genero===g?"selected":""}>${GENEROS[g]} (${g})</option>`).join("")}</select></label>
+    <label>Madre (nombre)<input id="f_madre" list="dl_madres" value="${h(c.madre)}" autocomplete="off" style="text-transform:uppercase"/><datalist id="dl_madres">${madres.map(x=>`<option value="${h(x.nombre)}">RP ${h(x.rp)}</option>`).join("")}</datalist></label>
+    <label>RP de la madre<input id="f_madreRp" value="${h(c.madreRp)}" autocomplete="off"/></label>
+    <label>Padre (nombre)<input id="f_padre" list="dl_padres" value="${h(c.padre)}" autocomplete="off" style="text-transform:uppercase"/><datalist id="dl_padres">${padres.map(x=>`<option value="${h(x.nombre)}">RP ${h(x.rp)}</option>`).join("")}</datalist></label>
+    <label>RP del padre<input id="f_padreRp" value="${h(c.padreRp)}" autocomplete="off"/></label>
+    <label>Propietario del equino<input id="f_propietario" list="dl_props" value="${h(c.propietario)}" autocomplete="off" placeholder="Ej: SOLSONA, GUSTAVO"/><datalist id="dl_props">${propietarios().map(p=>`<option value="${h(p)}">`).join("")}</datalist></label>
+    <label>Propietario de la madre<input id="f_propMadre" list="dl_props" value="${h(c.propMadre)}" autocomplete="off"/></label>
+    <label>Propietario del padre<input id="f_propPadre" list="dl_props" value="${h(c.propPadre)}" autocomplete="off"/></label>
+    <label class="s2">Observaciones<input id="f_obs" value="${h(c.obs)}" autocomplete="off"/></label>
+  </div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
+    <label class="chk"><input type="checkbox" id="f_muerto" ${c.muerto?"checked":""}/>Muerto</label>
+    <label class="chk"><input type="checkbox" id="f_manso" ${c.manso?"checked":""}/>Manso</label>
+    <label class="chk"><input type="checkbox" id="f_chipeado" ${c.chipeado?"checked":""}/>Chipeado</label>
+    <label class="chk"><input type="checkbox" id="f_cedido" ${c.cedido?"checked":""}/>Cedido</label>
+    <label class="chk"><input type="checkbox" id="f_padrilloPropio" ${c.padrilloPropio?"checked":""}/>Padrillo propio</label>
+  </div>
+  <div class="br"><button class="bp v big" onclick="guardarCab()">💾 Guardar</button><button class="bs" onclick="cancelarCab()">Cancelar</button>${!nuevo&&esAdmin()?`<button class="bs" style="color:#a8321f;margin-left:auto" onclick="eliminarCab('${c.id}')">🗑️ Eliminar equino</button>`:""}</div></div>`;
+}
+window.guardarCab=async function(){
+  const g=(id)=>{ const e=document.getElementById(id); return e?e.value.trim():""; }; const chk=(id)=>{ const e=document.getElementById(id); return !!(e&&e.checked); };
+  const rp=g("f_rp"); if(rp==="")return alert("El RP es obligatorio (es el número con el que se identifica el equino).");
+  const rpN=Number(rp); const dup=lista().find(c=>String(c.rp)===String(rpN)&&c.id!==state.editCab.id); if(dup&&!confirm("Ya existe un equino con RP "+rpN+" ("+(dup.nombre||"sin nombre")+"). ¿Guardar igual?"))return;
+  const u=usuarioActual(); const prev=state.editCab.id?state.caballos[state.editCab.id]||{}:{};
+  const c=Object.assign({},prev,{id:state.editCab.id||uid(),rp:rpN,sba:g("f_sba"),nombre:g("f_nombre").toUpperCase(),fechaNac:g("f_fechaNac"),pelaje:g("f_pelaje").toUpperCase(),genero:g("f_genero"),madre:g("f_madre").toUpperCase(),madreRp:g("f_madreRp"),padre:g("f_padre").toUpperCase(),padreRp:g("f_padreRp"),propietario:g("f_propietario").toUpperCase(),propMadre:g("f_propMadre").toUpperCase(),propPadre:g("f_propPadre").toUpperCase(),obs:g("f_obs"),muerto:chk("f_muerto"),manso:chk("f_manso"),chipeado:chk("f_chipeado"),cedido:chk("f_cedido"),padrilloPropio:chk("f_padrilloPropio"),modificado:new Date().toISOString(),modificadoPor:u?u.nombre:""});
+  if(!prev.id){ c.creado=c.modificado; c.creadoPor=c.modificadoPor; }
+  state.caballos[c.id]=c; await set("caballos/"+c.id,c);
+  state.editCab=null; state.formKey=null; state.fichaId=c.id; state.tab="ficha"; toast("✅ Guardado: "+nombreCab(c)); render(); window.scrollTo({top:0});
+};
+window.eliminarCab=async function(id){ const c=state.caballos[id]; if(!c)return; const n=partsDe(id).length; if(!confirm("¿Eliminar a "+nombreCab(c)+"?"+(n?" Tiene "+n+" participación(es) en eventos que también se borran.":"")+" Esta acción no se puede deshacer."))return; for(const p of partsDe(id)){ delete state.parts[p.id]; await remove("participaciones/"+p.id); } delete state.caballos[id]; await remove("caballos/"+id); state.editCab=null; state.formKey=null; if(state.fichaId===id)state.fichaId=null; state.tab="equinos"; toast("🗑️ Equino eliminado"); render(); };
+window.exportarExcel=function(){ try{ const L=filtrarCaballos().map(c=>({RP:c.rp,SBA:c.sba,NOMBRE:c.nombre,"FEC. NAC.":fmtF(c.fechaNac),EDAD:edad(c.fechaNac),PELAJE:c.pelaje,GENERO:c.genero,MADRE:c.madre,"RP MADRE":c.madreRp,PADRE:c.padre,"RP PADRE":c.padreRp,PROPIETARIO:c.propietario,"PROPIET. MADRE":c.propMadre,"PROPIET. PADRE":c.propPadre,MUERTO:c.muerto?"SI":"",MANSO:c.manso?"SI":"",CHIPEADO:c.chipeado?"SI":"",CEDIDO:c.cedido?"SI":"","PADRILLO PROPIO":c.padrilloPropio?"SI":"",OBSERVACIONES:c.obs,"PARTICIPACIONES":partsDe(c.id).length})); const P=Object.values(state.parts).filter(Boolean).sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||"")).map(p=>{ const c=state.caballos[p.caballoId]||{}; return {FECHA:fmtF(p.fecha),EVENTO:p.evento,LUGAR:p.lugar,RP:c.rp,EQUINO:c.nombre,RUEDA:p.rueda,MONTADOR:p.montador,RESULTADO:p.resultado,IMPORTE:p.importe===""?"":Number(p.importe),OBS:p.obs}; }); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(L),"EQUINOS"); XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(P),"EVENTOS"); XLSX.writeFile(wb,"Equinos_"+hoy()+".xlsx"); }catch(e){ alert("No se pudo generar el Excel: "+e.message); } };
+
+// ── FICHA ──
+window.verFicha=function(id){ state.fichaId=id; state.tab="ficha"; state.editCab=null; render(); window.scrollTo({top:0}); };
+function nodo(nombre,rp,sub,cls){ const c=buscarPorNombre(nombre,rp); if(!nombre&&!c)return `<div class="nodo ${cls||""}"><span class="blank">${sub||"sin dato"}</span></div>`; return `<div class="nodo ${cls||""} ${c?"link":""}" ${c?`onclick="verFicha('${c.id}')"`:""}>${h(nombre||c.nombre)}${c&&c.rp!=null?`<small>RP ${h(c.rp)}${c.sba?" · SBA "+h(c.sba):""}${c.pelaje?" · "+h(c.pelaje):""}</small>`:(sub?`<small>${h(sub)}</small>`:"")}</div>`; }
+function renderFicha(){
+  const c=state.fichaId?state.caballos[state.fichaId]:null;
+  if(!c)return `<div class="card"><h2>📋 Ficha del equino</h2><p class="hint">Buscá un equino para ver su ficha completa: datos, padres, árbol, hijos y su historial en eventos.</p>
+    <input id="f_qf" type="search" placeholder="🔍 Nombre, RP o SBA…" value="${h(state.f.q)}" oninput="setF('q',this.value)" style="font-size:1.05rem"/>
+    <div class="sel-list" style="margin-top:.5rem;max-height:420px">${filtrarCaballos().slice(0,80).map(x=>`<div class="sel-item" onclick="verFicha('${x.id}')"><strong>${h(x.nombre||"(sin nombre)")}</strong> · RP ${h(x.rp)}${x.sba?" · SBA "+h(x.sba):""} <span class="km">${h(x.pelaje)} ${fmtF(x.fechaNac)}</span> ${tagsDe(x)}</div>`).join("")||'<div class="empty">Sin resultados</div>'}</div></div>`;
+  const P=partsDe(c.id); const madre=buscarPorNombre(c.madre,c.madreRp); const padre=buscarPorNombre(c.padre,c.padreRp); const hijos=hijosDe(c);
+  const primera=P.length?P[0]:null; const ultima=P.length?P[P.length-1]:null; const temporadas=new Set(P.map(p=>anioDe(p.fecha)).filter(Boolean)); const desde=primera?new Date().getFullYear()-Number(anioDe(primera.fecha)):null;
+  const total=P.reduce((s,p)=>s+(Number(p.importe)||0),0); const verImp=puede("verImportes");
+  return `<div class="card"><div class="ficha-head"><div style="flex:1;min-width:200px"><div class="nom">🐎 ${c.nombre?h(c.nombre):'<span class="blank">sin nombre</span>'}</div><div style="margin-top:.3rem">${tagsDe(c)} ${c.sba?`<span class="tag sra">SBA ${h(c.sba)}</span>`:`<span class="tag nosra">sin SBA · falta registrar en SRA</span>`}</div></div>
+    <div class="br" style="margin:0">${puede("cargarEquinos")?`<button class="bp" onclick="editarCab('${c.id}')">✏️ Editar</button>`:""}${puede("cargarEventos")?`<button class="bp v" onclick="nuevaPart('${c.id}')">🏇 Cargar evento</button>`:""}<button class="bs" onclick="window.print()">🖨️</button><button class="bs" onclick="state.fichaId=null;render()">🔍 Otro</button></div></div>
+  <div class="dl">
+    <div><b>RP</b>${h(c.rp)}</div><div><b>SBA (SRA)</b>${vacio(c.sba)}</div><div><b>Fecha de nacimiento</b>${c.fechaNac?fmtF(c.fechaNac)+' <span class="km">('+h(edad(c.fechaNac))+')</span>':vacio("")}</div>
+    <div><b>Pelaje</b>${vacio(c.pelaje)}</div><div><b>Género</b>${c.genero?h(GENEROS[c.genero]||c.genero):vacio("")}</div><div><b>Propietario</b>${vacio(c.propietario)}</div>
+    <div><b>Madre</b>${c.madre?(madre?`<span class="link" onclick="verFicha('${madre.id}')">${h(c.madre)}</span>`:h(c.madre)):vacio("")}${c.madreRp?` <span class="km">RP ${h(c.madreRp)}</span>`:""}</div><div><b>Propietario de la madre</b>${vacio(c.propMadre)}</div>
+    <div><b>Padre</b>${c.padre?(padre?`<span class="link" onclick="verFicha('${padre.id}')">${h(c.padre)}</span>`:h(c.padre)):vacio("")}${c.padreRp?` <span class="km">RP ${h(c.padreRp)}</span>`:""}</div><div><b>Propietario del padre</b>${vacio(c.propPadre)}</div>
+    <div class="s2"><b>Observaciones</b>${vacio(c.obs)}</div>
+  </div>
+  ${c.creado||c.modificado?`<p class="km" style="margin-top:.6rem">${c.origen?"Origen: "+h(c.origen)+" · ":""}${c.creadoPor?"Cargado por "+h(c.creadoPor)+" · ":""}${c.modificado?"Última modificación "+fmtF(c.modificado.slice(0,10))+(c.modificadoPor?" por "+h(c.modificadoPor):""):""}</p>`:""}</div>
+
+  <div class="card"><h2>🌳 Árbol genealógico</h2><p class="hint">Los recuadros con línea punteada son equinos del plantel: tocalos para ir a su ficha.</p>
+  <div class="arbol">
+    <div class="nodo yo">${h(c.nombre||"(sin nombre)")}<small>RP ${h(c.rp)}${c.sba?" · SBA "+h(c.sba):""}</small></div>
+    <div class="col">${nodo(c.padre,c.padreRp,"padre")}${nodo(c.madre,c.madreRp,"madre")}</div>
+    <div class="col">${nodo(padre?padre.padre:"",padre?padre.padreRp:"","abuelo paterno")}${nodo(padre?padre.madre:"",padre?padre.madreRp:"","abuela paterna")}${nodo(madre?madre.padre:"",madre?madre.padreRp:"","abuelo materno")}${nodo(madre?madre.madre:"",madre?madre.madreRp:"","abuela materna")}</div>
+  </div>
+  ${hijos.length?`<h3 style="margin-top:1rem">Hijos / crías en el plantel (${hijos.length})</h3><div class="tw"><table><thead><tr><th>RP</th><th>Nombre</th><th>Nac.</th><th>Pelaje</th><th>${c.genero==="H"?"Padre":"Madre"}</th><th>Estado</th></tr></thead><tbody>${hijos.map(x=>`<tr class="cl" onclick="verFicha('${x.id}')"><td>${h(x.rp)}</td><td><strong>${h(x.nombre||"(sin nombre)")}</strong></td><td>${fmtF(x.fechaNac)}</td><td>${h(x.pelaje)}</td><td>${h(c.genero==="H"?x.padre:x.madre)}</td><td>${tagsDe(x)}</td></tr>`).join("")}</tbody></table></div>`:""}</div>
+
+  <div class="card"><h2>🏇 Eventos de jineteada (ACCDG)</h2>
+  ${P.length?`<div class="kg"><div class="kp"><div class="kl">Primer evento</div><div class="kv">${fmtF(primera.fecha)}</div><div class="km">${h(primera.evento)}</div></div><div class="kp"><div class="kl">Último evento</div><div class="kv">${fmtF(ultima.fecha)}</div><div class="km">${h(ultima.evento)}</div></div><div class="kp"><div class="kl">Participa desde hace</div><div class="kv">${desde} año${desde===1?"":"s"}</div><div class="km">${temporadas.size} temporada${temporadas.size===1?"":"s"} con eventos</div></div><div class="kp"><div class="kl">Participaciones</div><div class="kv">${P.length}</div></div>${verImp?`<div class="kp"><div class="kl">Total cobrado</div><div class="kv">${fmt$(total)||"$ 0"}</div></div>`:""}</div>
+  <div class="tw"><table><thead><tr><th>Fecha</th><th>Evento</th><th>Rueda</th><th>Montador</th><th>Resultado</th>${verImp?"<th>Importe</th>":""}<th>Obs.</th><th></th></tr></thead><tbody>${P.slice().reverse().map(p=>`<tr><td style="white-space:nowrap">${fmtF(p.fecha)}</td><td><strong>${h(p.evento)}</strong>${p.lugar?` <span class="km">${h(p.lugar)}</span>`:""}</td><td>${h(p.rueda)}</td><td>${h(p.montador)}</td><td>${h(p.resultado)}</td>${verImp?`<td style="white-space:nowrap">${fmt$(p.importe)}</td>`:""}<td class="km">${h(p.obs)}</td><td style="white-space:nowrap">${puedeEditarPart(p)?`<button class="bi" onclick="editarPart('${p.id}')" title="Editar">✏️</button><button class="bi" onclick="eliminarPart('${p.id}')" title="Borrar">🗑️</button>`:""}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Todavía no tiene eventos cargados.${puede("cargarEventos")?' Tocá "🏇 Cargar evento" para registrar el primero.':""}</div>`}</div>`;
+}
+
+// ── EVENTOS / PARTICIPACIONES ──
+function puedeEditarPart(p){ if(esAdmin()||puede("editarEventos"))return true; const u=usuarioActual(); return !!u&&puede("cargarEventos")&&p.creadoPor===u.nombre; }
+window.setFE=function(k,v){ state.fe[k]=v; render(); };
+window.nuevaPart=function(cabId){ const ult=Object.values(state.parts).filter(Boolean).sort((a,b)=>(b.creado||"").localeCompare(a.creado||""))[0]; state.editPart={id:null,fecha:ult&&ult.fecha?ult.fecha:hoy(),evento:ult?ult.evento||"":"",lugar:ult?ult.lugar||"":"",caballoId:cabId||null,rueda:"",importe:"",resultado:"",montador:"",obs:""}; state.partCabId=cabId||null; state.partCabQ=""; state.formKey="part:new"; state.tab="eventos"; render(); setTimeout(()=>{const e=document.getElementById("formPart");if(e)e.scrollIntoView({behavior:"smooth"});},40); };
+window.editarPart=function(id){ const p=state.parts[id]; if(!p)return; state.editPart=Object.assign({},p); state.partCabId=p.caballoId; state.partCabQ=""; state.formKey="part:"+id; state.tab="eventos"; render(); setTimeout(()=>{const e=document.getElementById("formPart");if(e)e.scrollIntoView({behavior:"smooth"});},40); };
+window.cancelarPart=function(){ state.editPart=null; state.formKey=null; render(); };
+window.setPartCab=function(id){ state.partCabId=id; state.partCabQ=""; render(); };
+window.setPartCabQ=function(v){ state.partCabQ=v; render(); };
+function renderFormPart(){
+  const p=state.editPart; const nuevo=!p.id; const cab=state.partCabId?state.caballos[state.partCabId]:null; const q=normTxt(state.partCabQ);
+  const cands=q?lista().filter(c=>!c.muerto&&q.split(" ").every(w=>normTxt([c.nombre,c.rp,c.sba,c.pelaje].join(" ")).includes(w))).slice(0,12):[];
+  const rs=ruedas(); const verImp=puede("verImportes")||esAdmin();
+  return `<div class="card" id="formPart" style="border:2px solid #2f6b2a"><h2>${nuevo?"🏇 Cargar participación en evento":"✏️ Editar participación"}</h2>
+  <p class="hint">Un registro por equino y por rueda. Si el mismo caballo salió en dos ruedas en el mismo evento, cargá dos registros.</p>
+  <div class="lbl" style="margin-bottom:.7rem">Equino *
+    ${cab?`<div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;background:#f0e6d2;border-radius:8px;padding:.6rem .8rem"><strong style="font-size:1.05rem">🐎 ${h(nombreCab(cab))}</strong><span class="km">${h(cab.pelaje)} ${cab.sba?"· SBA "+h(cab.sba):""}</span><button class="bs" style="margin-left:auto;padding:.3rem .7rem" onclick="setPartCab(null)">Cambiar</button></div>`
+    :`<input id="p_cabq" type="search" placeholder="🔍 Escribí el nombre o RP del equino…" value="${h(state.partCabQ)}" oninput="setPartCabQ(this.value)" autocomplete="off"/>${q?`<div class="sel-list">${cands.map(c=>`<div class="sel-item" onclick="setPartCab('${c.id}')"><strong>${h(c.nombre||"(sin nombre)")}</strong> · RP ${h(c.rp)} <span class="km">${h(c.pelaje)} ${fmtF(c.fechaNac)}</span></div>`).join("")||'<div class="empty">No se encontró. ¿Está cargado en Equinos?</div>'}</div>`:""}`}
+  </div>
+  <div class="fg">
+    <label>Fecha *<input id="p_fecha" type="date" value="${h(p.fecha)}"/></label>
+    <label>Evento *<input id="p_evento" list="dl_eventos" value="${h(p.evento)}" placeholder="Ej: Jineteada de Ayacucho" autocomplete="off"/><datalist id="dl_eventos">${eventosNombres().map(e=>`<option value="${h(e)}">`).join("")}</datalist></label>
+    <label>Lugar<input id="p_lugar" value="${h(p.lugar)}" autocomplete="off"/></label>
+    <label>Rueda *<select id="p_rueda"><option value="">Elegir…</option>${rs.map(r=>`<option ${p.rueda===r?"selected":""}>${h(r)}</option>`).join("")}</select></label>
+    ${verImp?`<label>Importe cobrado ($)<input id="p_importe" type="number" inputmode="decimal" value="${h(p.importe)}" placeholder="Vacío si no se cobró / no se sabe"/></label>`:""}
+    <label>Resultado / clasificación<input id="p_resultado" list="dl_res" value="${h(p.resultado)}" placeholder="Ej: Campeón, 2°, Clasificó, Volteó…" autocomplete="off"/><datalist id="dl_res">${[...new Set(Object.values(state.parts).map(x=>x&&x.resultado).filter(Boolean))].map(r=>`<option value="${h(r)}">`).join("")}</datalist></label>
+    <label>Montador / jinete<input id="p_montador" list="dl_mont" value="${h(p.montador)}" autocomplete="off"/><datalist id="dl_mont">${[...new Set(Object.values(state.parts).map(x=>x&&x.montador).filter(Boolean))].map(r=>`<option value="${h(r)}">`).join("")}</datalist></label>
+    <label class="s2">Observaciones<input id="p_obs" value="${h(p.obs)}" autocomplete="off"/></label>
+  </div>
+  <div class="br"><button class="bp v big" onclick="guardarPart()">💾 Guardar</button><button class="bs" onclick="cancelarPart()">Cancelar</button></div></div>`;
+}
+window.guardarPart=async function(){
+  const g=(id)=>{ const e=document.getElementById(id); return e?e.value.trim():null; };
+  if(!state.partCabId)return alert("Elegí el equino.");
+  const fecha=g("p_fecha"); if(!fecha)return alert("Falta la fecha."); const evento=g("p_evento"); if(!evento)return alert("Falta el nombre del evento."); const rueda=g("p_rueda"); if(!rueda)return alert("Elegí la rueda.");
+  const u=usuarioActual(); const prev=state.editPart.id?state.parts[state.editPart.id]||{}:{};
+  const dup=Object.values(state.parts).find(x=>x&&x.id!==state.editPart.id&&x.caballoId===state.partCabId&&x.fecha===fecha&&x.rueda===rueda&&normTxt(x.evento)===normTxt(evento));
+  if(dup&&!confirm("Ya hay una participación de este equino en "+evento+" ("+fmtF(fecha)+", "+rueda+"). ¿Cargar igual?"))return;
+  const imp=g("p_importe"); const p=Object.assign({},prev,{id:state.editPart.id||uid(),caballoId:state.partCabId,fecha,evento,lugar:g("p_lugar")||"",rueda,importe:imp===null?(prev.importe??""):num(imp),resultado:g("p_resultado")||"",montador:g("p_montador")||"",obs:g("p_obs")||"",modificado:new Date().toISOString(),modificadoPor:u?u.nombre:""});
+  if(!prev.id){ p.creado=p.modificado; p.creadoPor=p.modificadoPor; }
+  state.parts[p.id]=p; await set("participaciones/"+p.id,p);
+  const c=state.caballos[p.caballoId]; toast("✅ Guardado: "+(c?c.nombre||"RP "+c.rp:"")+" · "+evento+" · "+rueda);
+  state.editPart=null; state.formKey=null; render();
+};
+window.eliminarPart=async function(id){ const p=state.parts[id]; if(!p)return; if(!confirm("¿Borrar esta participación ("+p.evento+" · "+fmtF(p.fecha)+")?"))return; delete state.parts[id]; await remove("participaciones/"+id); toast("🗑️ Participación borrada"); render(); };
+function filtrarParts(){ const f=state.fe; const q=normTxt(f.q); return Object.values(state.parts).filter(p=>{ if(!p)return false; if(f.anio&&anioDe(p.fecha)!==f.anio)return false; if(f.rueda&&p.rueda!==f.rueda)return false; if(f.evento&&p.evento!==f.evento)return false; if(q){ const c=state.caballos[p.caballoId]||{}; const t=normTxt([p.evento,p.lugar,p.rueda,p.montador,p.resultado,p.obs,c.nombre,c.rp].join(" ")); if(!q.split(" ").every(w=>t.includes(w)))return false; } return true; }).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.creado||"").localeCompare(a.creado||"")); }
+function renderEventos(){
+  const f=state.fe; const L=filtrarParts(); const verImp=puede("verImportes"); const anios=[...new Set(Object.values(state.parts).map(p=>p&&anioDe(p.fecha)).filter(Boolean))].sort().reverse(); const sel=(a,b)=>a===b?"selected":"";
+  const total=L.reduce((s,p)=>s+(Number(p.importe)||0),0);
+  return `${state.editPart?renderFormPart():""}
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem"><h2 style="margin:0">🏇 Participaciones en eventos <span class="km">(${L.length})</span></h2>${puede("cargarEventos")&&!state.editPart?`<button class="bp v" onclick="nuevaPart()">➕ Cargar participación</button>`:""}</div>
+  <div class="filtros"><input id="f_eq" type="search" placeholder="🔍 Equino, evento, montador…" value="${h(f.q)}" oninput="setFE('q',this.value)"/>
+    <select onchange="setFE('anio',this.value)"><option value="">Año: todos</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select>
+    <select onchange="setFE('evento',this.value)"><option value="">Evento: todos</option>${eventosNombres().map(e=>`<option value="${h(e)}" ${sel(f.evento,e)}>${h(e)}</option>`).join("")}</select>
+    <select onchange="setFE('rueda',this.value)"><option value="">Rueda: todas</option>${ruedas().map(r=>`<option ${sel(f.rueda,r)}>${h(r)}</option>`).join("")}</select></div>
+  ${L.length?`<div class="tw"><table><thead><tr><th>Fecha</th><th>Evento</th><th>Equino</th><th>Rueda</th><th>Montador</th><th>Resultado</th>${verImp?"<th>Importe</th>":""}<th>Obs.</th><th></th></tr></thead><tbody>
+  ${L.map(p=>{ const c=state.caballos[p.caballoId]; return `<tr><td style="white-space:nowrap">${fmtF(p.fecha)}</td><td><strong>${h(p.evento)}</strong>${p.lugar?` <span class="km">${h(p.lugar)}</span>`:""}</td><td>${c?`<span class="link" onclick="verFicha('${c.id}')">${h(c.nombre||"(sin nombre)")}</span> <span class="km">RP ${h(c.rp)}</span>`:'<span class="blank">equino borrado</span>'}</td><td>${h(p.rueda)}</td><td>${h(p.montador)}</td><td>${h(p.resultado)}</td>${verImp?`<td style="white-space:nowrap">${fmt$(p.importe)}</td>`:""}<td class="km">${h(p.obs)}</td><td style="white-space:nowrap">${puedeEditarPart(p)?`<button class="bi" onclick="editarPart('${p.id}')">✏️</button><button class="bi" onclick="eliminarPart('${p.id}')">🗑️</button>`:""}</td></tr>`; }).join("")}
+  ${verImp?`<tr class="tr"><td colspan="6">Total (${L.length} participaciones)</td><td style="white-space:nowrap">${fmt$(total)||"$ 0"}</td><td colspan="2"></td></tr>`:""}</tbody></table></div>`:`<div class="empty">No hay participaciones cargadas${Object.keys(state.parts).length?" con esos filtros":""}.</div>`}</div>`;
+}
+
+// ── RESUMEN ──
+window.setFR=function(k,v){ state.fr[k]=v; render(); };
+function renderResumen(){
+  const f=state.fr; const verImp=puede("verImportes"); const P=Object.values(state.parts).filter(p=>p&&(!f.anio||anioDe(p.fecha)===f.anio)); const anios=[...new Set(Object.values(state.parts).map(p=>p&&anioDe(p.fecha)).filter(Boolean))].sort().reverse();
+  const total=P.reduce((s,p)=>s+(Number(p.importe)||0),0); const equinos=new Set(P.map(p=>p.caballoId)); const eventos=new Set(P.map(p=>p.evento+"|"+p.fecha));
+  let tabla="";
+  if(f.vista==="evento"){ const g={}; P.forEach(p=>{ const k=p.evento+"|"+p.fecha; g[k]=g[k]||{evento:p.evento,fecha:p.fecha,lugar:p.lugar,n:0,eq:new Set(),imp:0,ruedas:{}}; g[k].n++; g[k].eq.add(p.caballoId); g[k].imp+=Number(p.importe)||0; g[k].ruedas[p.rueda]=(g[k].ruedas[p.rueda]||0)+1; }); const L=Object.values(g).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
+    tabla=`<div class="tw"><table><thead><tr><th>Fecha</th><th>Evento</th><th>Equinos</th><th>Participaciones</th><th>Ruedas</th>${verImp?"<th>Cobrado</th>":""}</tr></thead><tbody>${L.map(x=>`<tr><td style="white-space:nowrap">${fmtF(x.fecha)}</td><td><strong>${h(x.evento)}</strong>${x.lugar?` <span class="km">${h(x.lugar)}</span>`:""}</td><td>${x.eq.size}</td><td>${x.n}</td><td class="km">${Object.entries(x.ruedas).map(([r,n])=>h(r)+" ×"+n).join(", ")}</td>${verImp?`<td style="white-space:nowrap"><strong>${fmt$(x.imp)||"$ 0"}</strong></td>`:""}</tr>`).join("")}</tbody></table></div>`; }
+  else if(f.vista==="equino"){ const g={}; P.forEach(p=>{ g[p.caballoId]=g[p.caballoId]||{id:p.caballoId,n:0,imp:0,min:p.fecha,max:p.fecha,ev:new Set(),res:[]}; const x=g[p.caballoId]; x.n++; x.imp+=Number(p.importe)||0; if(p.fecha<x.min)x.min=p.fecha; if(p.fecha>x.max)x.max=p.fecha; x.ev.add(p.evento+"|"+p.fecha); if(p.resultado)x.res.push(p.resultado); }); const L=Object.values(g).sort((a,b)=>b.imp-a.imp||b.n-a.n);
+    tabla=`<div class="tw"><table><thead><tr><th>Equino</th><th>RP</th><th>Eventos</th><th>Participaciones</th><th>Primer evento</th><th>Último</th><th>Resultados</th>${verImp?"<th>Cobrado</th>":""}</tr></thead><tbody>${L.map(x=>{ const c=state.caballos[x.id]||{}; return `<tr class="cl" onclick="verFicha('${x.id}')"><td><strong>${h(c.nombre||"(sin nombre)")}</strong></td><td>${h(c.rp)}</td><td>${x.ev.size}</td><td>${x.n}</td><td style="white-space:nowrap">${fmtF(x.min)}</td><td style="white-space:nowrap">${fmtF(x.max)}</td><td class="km">${h(x.res.slice(-4).join(", "))}</td>${verImp?`<td style="white-space:nowrap"><strong>${fmt$(x.imp)||"$ 0"}</strong></td>`:""}</tr>`; }).join("")}</tbody></table></div>`; }
+  else { const g={}; P.forEach(p=>{ const k=p.rueda||"(sin rueda)"; g[k]=g[k]||{r:k,n:0,imp:0,eq:new Set()}; g[k].n++; g[k].imp+=Number(p.importe)||0; g[k].eq.add(p.caballoId); }); const L=Object.values(g).sort((a,b)=>b.n-a.n);
+    tabla=`<div class="tw"><table><thead><tr><th>Rueda</th><th>Participaciones</th><th>Equinos distintos</th>${verImp?"<th>Cobrado</th>":""}</tr></thead><tbody>${L.map(x=>`<tr><td><strong>${h(x.r)}</strong></td><td>${x.n}</td><td>${x.eq.size}</td>${verImp?`<td style="white-space:nowrap"><strong>${fmt$(x.imp)||"$ 0"}</strong></td>`:""}</tr>`).join("")}</tbody></table></div>`; }
+  const sel=(a,b)=>a===b?"selected":"";
+  return `<div class="card"><h2>📊 Resumen</h2>
+  <div class="filtros"><select onchange="setFR('anio',this.value)"><option value="">Todos los años</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select><select onchange="setFR('vista',this.value)"><option value="evento" ${sel(f.vista,"evento")}>Por evento</option><option value="equino" ${sel(f.vista,"equino")}>Por equino</option><option value="rueda" ${sel(f.vista,"rueda")}>Por rueda</option></select></div>
+  <div class="kg"><div class="kp"><div class="kl">Eventos</div><div class="kv">${eventos.size}</div></div><div class="kp"><div class="kl">Participaciones</div><div class="kv">${P.length}</div></div><div class="kp"><div class="kl">Equinos que participaron</div><div class="kv">${equinos.size}</div></div>${verImp?`<div class="kp"><div class="kl">Total cobrado</div><div class="kv">${fmt$(total)||"$ 0"}</div></div>`:""}</div>
+  ${P.length?tabla:'<div class="empty">Todavía no hay participaciones cargadas.</div>'}</div>`;
+}
+
+// ── USUARIOS (solo admin) ──
+function renderUsuarios(){
+  if(!esAdmin())return "";
+  const us=Object.values(state.usuarios).filter(Boolean).sort((a,b)=>{ if(!!a.baja!==!!b.baja)return a.baja?1:-1; if((a.rol==="admin")!==(b.rol==="admin"))return a.rol==="admin"?-1:1; return (a.nombre||"").localeCompare(b.nombre||""); });
+  const nr=state.nuevoUserRol;
+  return `<div class="card"><h2>👥 Usuarios</h2>
+  <p class="hint">Los <strong>administradores</strong> entran con nombre y clave y tienen acceso a todo. Los <strong>operarios</strong> entran solo con su nombre y ven únicamente lo que vos les habilites en sus permisos (tocá 🔐 en cada operario). Al dar de baja a alguien, no puede entrar más; si está usando la app en ese momento, se le cierra la sesión sola.</p>
+  <div class="br" style="margin-bottom:1rem"><button class="bp" onclick="abrirNuevoUser('operario')">➕ Agregar operario</button><button class="bp" style="background:#8a4f1a" onclick="abrirNuevoUser('admin')">➕ Agregar administrador</button></div>
+  ${nr?`<div class="card" style="background:#fdfbf6;border:2px solid #b8762a"><h3>${nr==="admin"?"➕ Nuevo administrador":"➕ Nuevo operario"}</h3><div class="fg"><label>Nombre *<input id="nu_nombre" placeholder="Nombre con el que va a entrar" autocomplete="off"/></label>${nr==="admin"?`<label>Clave *<input id="nu_clave" type="text" placeholder="Clave del administrador" autocomplete="off"/></label>`:""}</div>${nr==="admin"?"":`<p class="hint">El operario va a entrar solo con este nombre, sin clave. Después le definís qué puede ver y cargar.</p>`}<div class="br"><button class="bp v" onclick="crearUser()">Guardar</button><button class="bs" onclick="state.nuevoUserRol=null;render()">Cancelar</button></div></div>`:""}
+  ${us.map(u=>{ const adm=u.rol==="admin"; const perm=Object.assign({},PERM_DEFAULT,u.permisos||{}); const abierto=state.editPermUser===u.id;
+    return `<div class="user-row ${adm?"adm":""} ${u.baja?"baja":""}"><div style="flex:1;min-width:150px"><strong style="font-size:1rem">${h(u.nombre)}</strong> <span class="tag ${adm?"sra":"chip"}">${adm?"ADMINISTRADOR":"OPERARIO"}</span>${u.baja?'<span class="tag muerto">DADO DE BAJA</span>':""}${!adm&&!u.baja?`<div class="km" style="margin-top:.2rem">Puede: ${PERMISOS.filter(p=>perm[p[0]]).map(p=>p[1].toLowerCase()).join(" · ")||"nada todavía"}</div>`:""}</div>
+    <div class="br" style="margin:0">${!adm&&!u.baja?`<button class="bs" onclick="state.editPermUser=${abierto?"null":"'"+u.id+"'"};render()">🔐 Permisos</button>`:""}${adm?`<button class="bs" onclick="claveUser('${u.id}')">🔑 Clave</button>`:""}<button class="bs" onclick="renombrarUser('${u.id}')">✏️</button>${u.baja?`<button class="bs" onclick="altaUser('${u.id}')">↩️ Reactivar</button><button class="bs" style="color:#a8321f" onclick="eliminarUser('${u.id}')">🗑️</button>`:`<button class="bs" style="color:#a8321f" onclick="bajaUser('${u.id}')">⛔ Dar de baja</button>`}</div>
+    ${abierto?`<div class="perm-grid">${PERMISOS.map(p=>`<label class="chk"><input type="checkbox" ${perm[p[0]]?"checked":""} onchange="setPerm('${u.id}','${p[0]}',this.checked)"/>${p[1]}</label>`).join("")}</div>`:""}</div>`; }).join("")}</div>`;
+}
+window.abrirNuevoUser=(rol)=>{ state.nuevoUserRol=rol; render(); setTimeout(()=>{const e=document.getElementById("nu_nombre");if(e)e.focus();},30); };
+window.crearUser=async function(){ const rol=state.nuevoUserRol; const nombre=(document.getElementById("nu_nombre").value||"").trim(); if(!nombre)return alert("Escribí el nombre."); if(Object.values(state.usuarios).some(u=>u&&normTxt(u.nombre)===normTxt(nombre)))return alert("Ya hay un usuario con ese nombre."); const u={id:uid(),nombre,rol,baja:false}; if(rol==="admin"){ const c=(document.getElementById("nu_clave").value||"").trim(); if(c.length<4)return alert("La clave debe tener al menos 4 caracteres."); u.clave=c; } else u.permisos=Object.assign({},PERM_DEFAULT); state.usuarios[u.id]=u; await set("usuarios/"+u.id,u); state.nuevoUserRol=null; if(rol!=="admin")state.editPermUser=u.id; toast("✅ "+(rol==="admin"?"Administrador":"Operario")+" agregado: "+nombre); render(); };
+window.setPerm=async function(id,k,v){ const u=state.usuarios[id]; if(!u)return; u.permisos=Object.assign({},PERM_DEFAULT,u.permisos||{}); u.permisos[k]=v; await set("usuarios/"+id,u); render(); };
+window.claveUser=async function(id){ const u=state.usuarios[id]; if(!u)return; const c=prompt("Nueva clave para "+u.nombre+":"); if(c==null)return; if(c.trim().length<4)return alert("Mínimo 4 caracteres."); u.clave=c.trim(); await set("usuarios/"+id,u); toast("🔑 Clave actualizada"); };
+window.renombrarUser=async function(id){ const u=state.usuarios[id]; if(!u)return; const n=prompt("Nuevo nombre:",u.nombre); if(!n||!n.trim())return; u.nombre=n.trim(); await set("usuarios/"+id,u); render(); };
+window.bajaUser=async function(id){ const u=state.usuarios[id]; if(!u)return; if(u.rol==="admin"&&adminsActivos().length<=1)return alert("No podés dar de baja al único administrador activo."); if(!confirm("¿Dar de baja a "+u.nombre+"? No va a poder entrar más."))return; u.baja=true; await set("usuarios/"+id,u); render(); };
+window.altaUser=async function(id){ const u=state.usuarios[id]; if(!u)return; u.baja=false; await set("usuarios/"+id,u); render(); };
+window.eliminarUser=async function(id){ const u=state.usuarios[id]; if(!u)return; if(!confirm("¿Eliminar definitivamente a "+u.nombre+"?"))return; delete state.usuarios[id]; await remove("usuarios/"+id); render(); };
+
+// ── PARÁMETROS (solo admin) ──
+function renderParam(){
+  if(!esAdmin())return "";
+  const faltan=SEED.filter(s=>!lista().some(c=>String(c.rp)===String(s.rp))).length;
+  return `<div class="card"><h2>⚙️ Parámetros</h2>
+  <h3>Ruedas</h3><p class="hint">Las ruedas que aparecen al cargar un evento. Base: ${RUEDAS_BASE.join(", ")}.</p>
+  <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">${ruedas().map(r=>`<span class="tag sra" style="font-size:.85rem;padding:.3rem .6rem">${h(r)}${!RUEDAS_BASE.includes(r)&&(state.config.ruedas||[]).includes(r)?` <span style="cursor:pointer" onclick="quitarRueda('${h(r)}')">✕</span>`:""}</span>`).join("")}</div>
+  <div class="br"><input id="f_nrueda" placeholder="Nueva rueda (ej: Encimera, Potro Pelo)" style="max-width:300px"/><button class="bs" onclick="agregarRueda()">➕ Agregar</button></div>
+  <h3 style="margin-top:1.4rem">Planilla SRA</h3><p class="hint">Los ${SEED.length} equinos de la planilla del criador 46 vienen incluidos en la app. ${faltan?`Faltan cargar <strong>${faltan}</strong> (se cargan solo los RP que no existen).`:"Ya están todos cargados."}</p>
+  <div class="br">${faltan?`<button class="bp" onclick="cargarPlanillaInicial()">📄 Cargar los ${faltan} que faltan</button>`:""}<button class="bs" onclick="document.getElementById('fileXlsx').click()">📂 Importar otro Excel con el mismo formato</button><input type="file" id="fileXlsx" accept=".xlsx,.xls" style="display:none" onchange="importarExcel(this.files[0]);this.value=''"/></div>
+  <h3 style="margin-top:1.4rem">Copia de seguridad</h3><p class="hint">Descargá una copia de todos los datos (equinos, participaciones y usuarios). Para restaurar, elegí el archivo .json: se reemplazan los datos actuales.</p>
+  <div class="br"><button class="bp" onclick="backup()">💾 Descargar backup</button><button class="bs" onclick="document.getElementById('fileJson').click()">♻️ Restaurar backup</button><input type="file" id="fileJson" accept=".json" style="display:none" onchange="restaurar(this.files[0]);this.value=''"/></div>
+  <h3 style="margin-top:1.4rem">Esta app</h3><p class="km">Versión ${window.APP_VERSION} · Base de datos: ${h(firebaseConfig.projectId)} / ${RAIZ} · ${lista().length} equinos · ${Object.keys(state.parts).length} participaciones · ${Object.keys(state.usuarios).length} usuarios</p>
+  <div class="br"><button class="bs" onclick="actualizarApp()">🔄 Buscar actualización de la app</button></div></div>`;
+}
+window.agregarRueda=async function(){ const e=document.getElementById("f_nrueda"); const r=(e.value||"").trim(); if(!r)return; const rs=[...(state.config.ruedas||[])]; if(!rs.includes(r))rs.push(r); state.config.ruedas=rs; await set("config/ruedas",rs); e.value=""; render(); };
+window.quitarRueda=async function(r){ const rs=(state.config.ruedas||[]).filter(x=>x!==r); state.config.ruedas=rs; await set("config/ruedas",rs); render(); };
+window.backup=function(){ const data={app:"EQUINOS",version:window.APP_VERSION,fecha:new Date().toISOString(),usuarios:state.usuarios,caballos:state.caballos,participaciones:state.parts,config:state.config}; const b=new Blob([JSON.stringify(data,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="Equinos_backup_"+hoy()+".json"; a.click(); };
+window.restaurar=async function(file){ if(!file)return; if(!confirm("⚠️ Restaurar un backup REEMPLAZA todos los equinos y participaciones actuales por los del archivo. ¿Continuar?"))return; try{ const d=JSON.parse(await file.text()); if(d.app!=="EQUINOS")throw new Error("El archivo no es un backup de EQUINOS"); if(d.caballos){ state.caballos=d.caballos; await set("caballos",d.caballos); } if(d.participaciones){ state.parts=d.participaciones; await set("participaciones",d.participaciones); } if(d.config){ state.config=d.config; await set("config",d.config); } if(d.usuarios&&confirm("¿Restaurar también los usuarios y sus claves?")){ state.usuarios=d.usuarios; await set("usuarios",d.usuarios); } toast("✅ Backup restaurado"); render(); }catch(e){ alert("No se pudo restaurar: "+e.message); } };
+window.importarExcel=async function(file){ if(!file)return; try{ const wb=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true}); const ws=wb.Sheets["NACIMIENTOS"]||wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true}); let hi=rows.findIndex(r=>r&&String(r[0]||"").toUpperCase().replace(/\./g,"")==="RP"); if(hi<0)throw new Error("No encontré la fila de encabezados (R.P / S.B.A. / FEC. NAC. …)"); const H=rows[hi].map(x=>String(x||"").toUpperCase().replace(/\./g,"").trim()); const col=(n)=>H.findIndex(x=>x.startsWith(n)); const C={rp:col("RP"),sba:col("SBA"),fn:col("FEC NAC"),nom:col("NOMBRE"),pel:col("PELAJE"),gen:col("GENERO"),mu:col("MUERTES"),ma:col("MADRE"),marp:H.indexOf("RP",col("MADRE")),pa:col("PADRE"),parp:H.indexOf("RP2"),pm:col("PROPIET MADRE"),pp:col("PROPIET PADRE"),obs:col("OBSERVACIONES")}; const s=(r,i)=>{ if(i<0)return ""; const v=r[i]; if(v==null)return ""; if(v instanceof Date)return isNaN(v)?"":v.getFullYear()+"-"+String(v.getMonth()+1).padStart(2,"0")+"-"+String(v.getDate()).padStart(2,"0"); return String(v).trim(); }; const ex=new Set(lista().map(c=>String(c.rp))); const u=usuarioActual(); let n=0,sk=0; for(const r of rows.slice(hi+1)){ if(!r)continue; const rp=Number(r[C.rp]); if(isNaN(rp)||r[C.rp]==null)continue; const nom=s(r,C.nom),fn=s(r,C.fn),sba=s(r,C.sba); if(!nom&&!fn&&!sba){continue;} if(ex.has(String(rp))){sk++;continue;} const obs=s(r,C.obs).toUpperCase(); const c={id:uid(),rp,sba,nombre:nom.toUpperCase(),fechaNac:fn,pelaje:s(r,C.pel).toUpperCase(),genero:s(r,C.gen).toUpperCase(),madre:s(r,C.ma).toUpperCase(),madreRp:s(r,C.marp),padre:s(r,C.pa).toUpperCase(),padreRp:s(r,C.parp),propMadre:s(r,C.pm).toUpperCase(),propPadre:s(r,C.pp).toUpperCase(),propietario:"",obs:s(r,C.obs),muerto:s(r,C.mu).toUpperCase()==="SI"||obs.includes("MUERTO"),manso:obs.includes("MANSO"),chipeado:obs.includes("CHIPEADO"),cedido:obs.includes("CEDID"),padrilloPropio:obs.includes("PADRILLO PROPIO"),creado:new Date().toISOString(),creadoPor:u?u.nombre:"",origen:"importado de "+file.name}; state.caballos[c.id]=c; await set("caballos/"+c.id,c); ex.add(String(rp)); n++; } toast("✅ Importados "+n+" equinos"+(sk?" · "+sk+" ya existían (no se tocaron)":"")); render(); }catch(e){ alert("No se pudo importar: "+e.message); } };
+
+function renderModal(){ return ""; }
+
+// ══════════ ARRANQUE ══════════
+render();
+</script>
+</body>
+</html>
