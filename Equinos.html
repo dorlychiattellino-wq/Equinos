@@ -55,6 +55,7 @@ textarea{min-height:64px;resize:vertical}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:.85rem}
 th{background:#0033a0;color:#e4edff;padding:.5rem .6rem;text-align:left;font-weight:700;white-space:nowrap;position:sticky;top:0}
+th.ord{cursor:pointer;user-select:none}th.ord:hover{background:#0a47b8}th.ord .fl{font-size:.8rem;opacity:.45;margin-left:.15rem}th.ord.on{background:#1455c8}th.ord.on .fl{opacity:1;color:#ffcc00;font-size:.9rem}
 td{padding:.45rem .6rem;border-bottom:1px solid #e3e9f3;vertical-align:middle}
 tr.cl{cursor:pointer}
 tr.cl:hover td{background:#f1f5fb}
@@ -123,7 +124,7 @@ tr.tr td{background:#e3ebf8;font-weight:700;border-top:2px solid #9cb4e2}
 <div id="root"><div class="loading"><div class="spinner"></div><span>Conectando con la base de datos...</span></div></div>
 
 <script>
-window.APP_VERSION="2026.10.25-h";
+window.APP_VERSION="2026.10.26-a";
 window.actualizarApp=async function(){
   try{ if("serviceWorker" in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); for(const r of regs)await r.unregister(); } }catch(e){}
   try{ if(window.caches){ const ks=await caches.keys(); for(const k of ks)await caches.delete(k); } }catch(e){}
@@ -249,7 +250,7 @@ const state={
   sesion:localStorage.getItem("eq_sesion")||null,
   loginModo:"operario", loginErr:"", setupErr:"",
   tab:"equinos", fichaId:null,
-  f:{q:"",genero:"",pelaje:"",estado:"",sra:"",anio:"",prop:"",orden:"rp",open:false},
+  f:Object.assign({q:"",genero:"",pelaje:"",estado:"",sra:"",anio:"",prop:"",orden:"rp",dir:"asc",open:false},(()=>{ try{ const o=JSON.parse(localStorage.getItem("eq_orden")||"{}"); return {orden:o.orden||"rp",dir:o.dir||"asc"}; }catch(e){ return {}; } })()),
   fe:{q:"",anio:"",rueda:"",evento:"",cab:"",open:false},
   fr:{anio:"",vista:"evento"},
   editCab:null, editPart:null, formKey:null, partCabQ:"", partCabId:null,
@@ -440,10 +441,12 @@ function filtrarCaballos(){
     if(f.prop&&![c.propietario,c.propMadre,c.propPadre].includes(f.prop))return false;
     if(q){ const txt=normTxt([c.nombre,c.rp,c.sba,c.pelaje,c.madre,c.padre,c.propietario,c.propMadre,c.propPadre,c.obs].join(" ")); if(!q.split(" ").every(w=>txt.includes(w)))return false; }
     return true; });
-  const o=f.orden; L.sort((a,b)=>{ if(o==="rp")return (Number(a.rp)||0)-(Number(b.rp)||0); if(o==="nombre")return (a.nombre||"zzz").localeCompare(b.nombre||"zzz"); if(o==="fecha")return (b.fechaNac||"").localeCompare(a.fechaNac||""); return 0; });
+  const o=f.orden, d=f.dir==="desc"?-1:1; L.sort((a,b)=>{ let r=0; if(o==="rp")r=(Number(a.rp)||0)-(Number(b.rp)||0); else if(o==="nombre")r=(a.nombre||"\uffff").localeCompare(b.nombre||"\uffff"); else if(o==="fecha")r=(a.fechaNac||"\uffff").localeCompare(b.fechaNac||"\uffff"); return r*d; });
   return L;
 }
 window.setF=function(k,v){ state.f[k]=v; render(); };
+window.ordenar=function(col){ const f=state.f; if(f.orden===col)f.dir=f.dir==="asc"?"desc":"asc"; else { f.orden=col; f.dir="asc"; } try{ localStorage.setItem("eq_orden",JSON.stringify({orden:f.orden,dir:f.dir})); }catch(e){} render(); };
+function thOrd(col,txt){ const f=state.f; const on=f.orden===col; return `<th class="ord ${on?"on":""}" onclick="ordenar('${col}')" title="Tocar para ordenar">${txt} <span class="fl">${on?(f.dir==="asc"?"▲":"▼"):"⇅"}</span></th>`; }
 function tagGen(c){ return c.genero?`<span class="tag ${c.genero.toLowerCase()}" title="${h(GENEROS[c.genero]||"")}">${c.genero}</span>`:""; }
 function filaCls(c){ return c.muerto?"fm":c.cedido?"fc":c.padrilloPropio?"fp":c.chipeado?"fch":c.manso?"fma":""; }
 function tagsDe(c){ let t=""; if(c.muerto)t+=`<span class="tag muerto">MUERTO</span>`; if(c.manso)t+=`<span class="tag manso">MANSO</span>`; if(c.cedido)t+=`<span class="tag cedido">CEDIDO</span>`; if(c.padrilloPropio)t+=`<span class="tag padrillo">PADRILLO PROPIO</span>`; if(c.chipeado)t+=`<span class="tag chip">CHIPEADO</span>`; return t; }
@@ -460,11 +463,11 @@ function renderEquinos(){
     <select onchange="setF('sra',this.value)"><option value="">SRA: todos</option><option value="si" ${sel(f.sra,"si")}>Con SBA (registrado en SRA)</option><option value="no" ${sel(f.sra,"no")}>Sin SBA (falta registrar)</option></select>
     <select onchange="setF('anio',this.value)"><option value="">Año nac.: todos</option>${anios.map(a=>`<option ${sel(f.anio,a)}>${a}</option>`).join("")}</select>
     <select onchange="setF('prop',this.value)"><option value="">Propietario: todos</option>${propietarios().map(p=>`<option value="${h(p)}" ${sel(f.prop,p)}>${h(p)}</option>`).join("")}</select>
-    <select onchange="setF('orden',this.value)"><option value="rp" ${sel(f.orden,"rp")}>Orden: RP</option><option value="nombre" ${sel(f.orden,"nombre")}>Orden: nombre</option><option value="fecha" ${sel(f.orden,"fecha")}>Orden: más nuevos</option></select>
+    <select onchange="const [o,d]=this.value.split(':'); state.f.orden=o; state.f.dir=d; try{localStorage.setItem('eq_orden',JSON.stringify({orden:o,dir:d}))}catch(e){} render()"><option value="rp:asc" ${sel(f.orden+":"+f.dir,"rp:asc")}>Orden: RP ▲ (menor a mayor)</option><option value="rp:desc" ${sel(f.orden+":"+f.dir,"rp:desc")}>Orden: RP ▼ (mayor a menor)</option><option value="nombre:asc" ${sel(f.orden+":"+f.dir,"nombre:asc")}>Orden: nombre A→Z</option><option value="nombre:desc" ${sel(f.orden+":"+f.dir,"nombre:desc")}>Orden: nombre Z→A</option><option value="fecha:asc" ${sel(f.orden+":"+f.dir,"fecha:asc")}>Orden: nacimiento ▲ (más viejos primero)</option><option value="fecha:desc" ${sel(f.orden+":"+f.dir,"fecha:desc")}>Orden: nacimiento ▼ (más nuevos primero)</option></select>
     <button class="bs" onclick="state.f=Object.assign(state.f,{genero:'',pelaje:'',estado:'',sra:'',anio:'',prop:''});render()">✕ Limpiar filtros</button>
   </div><div class="km" style="margin-bottom:.4rem">Referencias (como en la planilla): <span class="tag muerto">MUERTO</span><span class="tag manso">MANSO</span><span class="tag chip">CHIPEADO</span><span class="tag cedido">CEDIDO</span><span class="tag padrillo">PADRILLO PROPIO</span> · Género: <span class="tag h">H</span>hembra <span class="tag mp">MP</span>macho padrillo <span class="tag mc">MC</span>macho castrado</div>`:""}
   
-  ${L.length?`<div class="tw"><table><thead><tr><th>RP</th><th>SBA</th><th>Nombre</th><th>Nac.</th><th>Edad</th><th>Pelaje</th><th>Madre</th><th>Padre</th><th>Género</th><th>Estado</th><th>Eventos</th></tr></thead><tbody>
+  ${L.length?`<div class="tw"><table><thead><tr>${thOrd("rp","RP")}<th>SBA</th>${thOrd("nombre","Nombre")}${thOrd("fecha","Nac.")}<th>Edad</th><th>Pelaje</th><th>Madre</th><th>Padre</th><th>Género</th><th>Estado</th><th>Eventos</th></tr></thead><tbody>
   ${L.map(c=>`<tr class="cl ${filaCls(c)}" onclick="verFicha('${c.id}')"><td><strong>${h(c.rp)}</strong></td><td>${c.sba?`<span class="tag sra">${h(c.sba)}</span>`:`<span class="tag nosra">sin SBA</span>`}</td><td><strong>${c.nombre?h(c.nombre):'<span class="blank">sin nombre</span>'}</strong></td><td style="white-space:nowrap">${fmtF(c.fechaNac)}</td><td>${h(edad(c.fechaNac))}</td><td>${h(c.pelaje)}</td><td>${h(c.madre)}</td><td>${h(c.padre)}</td><td>${tagGen(c)}</td><td>${tagsDe(c)}</td><td>${partsDe(c.id).length||""}</td></tr>`).join("")}
   </tbody></table></div>`:`<div class="empty">No hay equinos que coincidan con los filtros.</div>`}</div>`;
 }
