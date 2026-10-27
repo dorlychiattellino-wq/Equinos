@@ -1,6 +1,6 @@
 // Service worker de EQUINOS: guarda la app en el dispositivo para abrirla sin señal.
 // Cada vez que se sube una versión nueva, cambiar el número de CACHE (la app avisa "Hay una versión nueva").
-const CACHE = "equinos-v2026.10.26-a";
+const CACHE = "equinos-v2026.10.27-a";
 const ARCHIVOS = ["./", "./Equinos.html", "./manifest.json", "./icon-180.png", "./icon-192.png", "./icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
